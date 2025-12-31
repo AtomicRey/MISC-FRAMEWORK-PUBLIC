@@ -6,3 +6,8 @@ With current limitations, MISC has a potential of 250 character slots because of
 For fun
 ## Can I use it?
 Sure just give credit where it's due because Ramona, Reyna, and Monty are the crutch of the framework and without any one of them the framework would either not exist or be complete dogshit
+## Okay but HOOWWW do I use it huh? How the fuck do I use it!?
+okay okay calm down. the instructions for each function are within the scripts itself. 
+OPTIONAL files are, as the name suggest, optional. this currently contains the SpecialPlayers custom player 2s addon. but it's very complicated and not reccomended for beginners.
+the scripts in "Editable scripts" are the ones you want to modify to get your character set up. The ones in "Non-Editable scripts" are ones you do not want to touch.
+Some scripts don't necessarily need to be edited (outside of renaming variables to your character) such as AdvancedFunctions, or Renderchar.
