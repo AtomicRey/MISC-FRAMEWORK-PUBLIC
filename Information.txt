@@ -1,0 +1,5 @@
+Just here for the rest of the team and as a general reminder for me too - Monty
+
+- All ECSU support will need to be recoded upon the release of ECC and the new framework Lemons coded (which I (Monty) will be studying how it works alongside it's documentation in order to understand it)
+- We need some proper documentation nearer to completion so people actually know how it works and what they need to do and how
+- Tails skins currently don't work in the Ending logo screen so we may need to fix that eventually too

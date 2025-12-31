@@ -1,0 +1,128 @@
+
+//these are just the necessary functions that are required even without the custom player 2s addon.
+//If you want custom player 2s, you can replace this script
+
+//Please note that you do need to replace ALL instances of CHARACTER_CUSTOM with your custom character variable.
+//Outside of that, you don't need to edit anything here.
+
+function void MISC.SpawnSpecialPlayer()
+{
+	if global.characters == CHARACTER_CUSTOM //prevent looping by putting if statement here
+	{
+		//you can basically force another global.characters value here.
+		
+		return
+	}
+	
+	base.MISC.SpawnSpecialPlayer()
+}
+
+//this is for custom player 2s, for example, MISC partners.
+//Don't actually use this function unless you have the Special Player 2s addon.
+function bool MISC.SpawnSpecialPlayer2()
+{
+	if global.characters == CHARACTER_CUSTOM
+	{
+		return false
+	}
+	
+	return base.MISC.SpawnSpecialPlayer2()
+}
+
+//This just sets the current player's character depending on 2 inputs. again, you don't need to edit this.
+function void MISC.setPlayer(u8 player, u8 character)
+{
+	u32 A0backup = A0
+	//tag team support
+	A0 = (player == 1) ? 0xffffb000 : (player == 2) ? 0xffffb04a : (player == 3) ? 0xffffc2ca : 0xffffc314
+	
+	MISC.player = character
+	if player == 2
+		MISC.player2.character = character
+	A0 = A0backup
+}
+
+//Check if A0 is the selected player
+function bool MISC.isPlayer(u8 player)
+{
+	//tag team compat
+	u8 check = (A0 == 0xffffb000) ? 1 : (A0 == 0xffffb04a) ? 2 : (A0 == 0xffffc2ca) ? 3 : 4
+	
+	if check == player
+		return true
+	return false
+}
+
+//get the current player in a certain player slot DURING STAGES
+function bool MISC.getCharacter(u8 player, u8 character)
+{
+	if character < 4 //not a MISC char
+	{
+		u32 A0backup = A0
+		//tag team support
+		A0 = (player == 1) ? 0xffffb000 : (player == 2) ? 0xffffb04a : (player == 3) ? 0xffffc2ca : 0xffffc314
+		
+		if char.character == character
+			return true
+			
+		A0 = A0backup
+	}
+
+	if player == 1
+	{
+		if global.characters == character
+			return true
+	}
+	else
+	{
+		u32 A0backup = A0
+		//tag team support
+		A0 = (player == 2) ? 0xffffb04a : (player == 3) ? 0xffffc2ca : 0xffffc314
+		
+		if MISC.player == character
+			return true
+		
+		A0 = A0backup
+	}
+	
+	return false
+}
+
+//Checks if current player at selected address is the character
+function bool MISC.isCharacter(u32 address, u8 character)
+{
+	u32 A0backup = A0
+	A0 = address
+
+	if character < 4 //not a MISC char
+	{
+		if char.character == character
+		{
+			A0 = A0backup
+			return true
+		}
+	}
+
+	if A0 == 0xffffb000
+	{
+		if global.characters == character
+		{
+			A0 = A0backup
+			return true
+		}
+	}
+	else
+	{
+		if MISC.player == character
+		{
+			A0 = A0backup
+			return true
+		}
+	}
+	
+	A0 = A0backup
+	
+	return false
+}
+
+define MISC.player = u8[A0 + 0x29]
