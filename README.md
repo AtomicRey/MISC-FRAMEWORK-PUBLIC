@@ -1,6 +1,7 @@
 # More Independent Slots for Characters (MISC)
 ## What the fuck is it?
 Just some framework to add characters without replacing other guys in the game. The framework makes use of string saving to allow for a modifiable MISC order based on mod priority and whatnot.
+additionally, this framework is built into the character mod, rather than requiring a seperate framework mod like ESU used to.
 With current limitations, MISC has a potential of 250 character slots because of character slots being built off of the same ones as the default 3AIR system.
 ## Why use it?
 For fun
