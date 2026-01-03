@@ -63,6 +63,7 @@ function void MISC.SetChars(u8 val)
 }
 
 // Make sure the two functions below are correctly correlated, problems will occur otherwise (primarily with saving)
+// These functions get the character string based on an inputed id value, and an id based on an inputed string value, respectively.
 function string MISC.GetStringFromChar(u8 char)
 {
 	if char == CHARACTER_CUSTOM

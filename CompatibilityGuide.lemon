@@ -1,0 +1,90 @@
+//DO NOT INCLUDE THIS SCRIPT IN YOUR MOD
+//this is purely to explain specific functions needed for compatibility's sakes
+
+//for most cases, you can check for a MISC character by checking global characters.
+//global characters is also used for the base 4 characters, as so:
+//0 - Sonic
+//1 - Sonic & Tails
+//2 - Tails
+//3 - Knuckles
+//4 - Knuckles & Tails
+//this means MISC chars are global.characters > 4
+
+function void FuckassExample()
+{
+	if global.characters > 4 //apply ONLY to MISC characters
+	{
+		//do something
+	}
+	
+	//you can also do the same thing with MISC.player1.character and MISC.player2.character. 
+	//(ONLY WORKS IF MISC IS ACTIVE, OR IF YOU HAVE THE MISC PREPROCESSOR CHECK)
+	
+	//MISC.player1.character is the same as global.characters, so you can interchange the two.
+	if MISC.player1.character > 4
+	{
+		//do something
+	}
+	
+	//you can also call MISC.player2.character by it's address, u16[0xffffff0c]
+	if MISC.player2.character > 4
+	{
+		//do something
+	}
+	
+	//you can also do the same with MISC.player (only if MISC is active or MISC is defined)
+	//KEEP IN MIND this only works if there is a PLAYER OBJECT active IN-GAME, and only if the A0 matches the memory address (not update address) of the player.
+	if MISC.player > 4
+	{
+		//do something
+	}
+	
+	//you can also call MISC.player by it's defined memory, u8[A0 + 0x29], useful if you don't want to define the actual value in your code.
+	if u8[A0 + 0x29] > 4
+	{
+		//do something
+	}
+	
+	//you can do the same thing except substituting A0 for the set player 1 and player 2 A0 values, 0xffffb000 or 0xffffb04a respectively
+	if u8[0xffffb000 + 0x29] > 4
+	{
+		//do something
+	}
+	if u8[0xffffb04a + 0x29] > 4
+	{
+		//do something
+	}
+}
+
+// These functions get the character string based on an inputed id value, and an id based on an inputed string value, respectively.
+// you can use this to check for characters without getting the character's global variable.
+function string MISC.GetStringFromChar(u8 char)
+{
+	if char == CHARACTER_CUSTOM
+		return "CHARACTER_CUSTOM"
+	else
+		return base.MISC.GetStringFromChar(char)
+}
+
+function u8 MISC.GetCharFromString(string char)
+{
+	if char == "CHARACTER_CUSTOM"
+		return CHARACTER_CUSTOM
+	else
+		return base.MISC.GetCharFromString(char)
+}
+
+//example usage: ONLY WORKS IF MISC CHARACTERS ARE BELOW
+function void FuckassExample2()
+{
+	//this only works if your mod has a higher priority than MISC.
+	//you can also define a blank version of the function you want to use, if you want it to work regardless of mod priority.
+#if MISC_ACTIVE == 3 //make sure you're checking for specific MISC revision. (will follow the mod with top priority's MISC version)
+	if MISC.GetStringFromChar(global.characters) == "CHARACTER_AMY" //check for amy for example
+	{
+		//do something
+	}
+#endif
+}
+
+//that should be everything. if there's something more specific you need, or want to request something to be added to this, please let us know!
