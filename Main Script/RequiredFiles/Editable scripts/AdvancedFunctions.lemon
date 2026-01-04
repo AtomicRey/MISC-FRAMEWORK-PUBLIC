@@ -153,14 +153,18 @@ function bool fn00d458()
 			}
 		}
 		
+		u8 AllowedZones = MISC.getAllowedZones(slotnum)
+		if objA0.value3b < 2 && AllowedZones == 0x0d
+			AllowedZones = 0x0c
+		
 		//correct for MISC selections
-		if (u16[A0 + 0x36] > MISC.getAllowedZones(slotnum))
+		if (u16[A0 + 0x36] > AllowedZones)
 		{
-			Log = A0
+			//Log = A0
 			if (control.pad1.pressed & CONTROL_UP)
 				u16[A0 + 0x36] = 0
 			else if (control.pad1.pressed & CONTROL_DOWN)
-				u16[A0 + 0x36] = MISC.getAllowedZones(slotnum)
+				u16[A0 + 0x36] = AllowedZones
 		}
 		objA0.compound.count = 2
 		

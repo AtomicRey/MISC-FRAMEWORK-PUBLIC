@@ -1472,7 +1472,7 @@ function bool DEZFinalBoss3.canPlayerEnterDoomsday()
 	if global.characters < 4
 		return base.DEZFinalBoss3.canPlayerEnterDoomsday()
 
-	if MISC.getAllowedZones(global.characters) == 0x0d
+	if MISC.getAllowedZones(global.characters) == 0x0d && global.chaos_emeralds == 7
 		return true
 	else
 		return false

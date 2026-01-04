@@ -430,7 +430,12 @@ function void ESS_switchZoneSelection()
 {
 	u8 slotnum = MISC.GetCharFromString(MISC.GetStringFromSlot(dataselect.slot_selected))
 	if (slotnum == CHARACTER_CUSTOM)
-		D6 = MISC.getAllowedZones(slotnum)
+	{
+		u8 AllowedZones = MISC.getAllowedZones(slotnum)
+		if objA0.value3b < 2 && AllowedZones == 0x0d
+			AllowedZones = 0x0c
+		D6 = AllowedZones
+	}
 	base.ESS_switchZoneSelection()
 }
 
