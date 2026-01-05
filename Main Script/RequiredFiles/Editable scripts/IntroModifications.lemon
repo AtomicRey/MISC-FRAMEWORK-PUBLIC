@@ -1,0 +1,58 @@
+
+//FOR SONIC BASE CHARACTERS
+//if your character isn't a sonic base, none of this matters, and you can just delete this script.
+
+//if you want your character to have no intro, use this. otherwise, you can remove it.
+function bool isSonicIntro()
+{
+	if global.characters != CHARACTER_CUSTOM || global.zone_act != 0x0000 || checkpoint.number != 0
+		return base.isSonicIntro()
+	return false
+}
+
+//again, only if you want your character to have no intro. remove otherwise 
+//# address-hook(0x01c4d0) end(0x01c54e)
+function void fn01c4d0()
+{
+	if global.characters != CHARACTER_CUSTOM
+	{
+		base.fn01c4d0()
+		return
+	}
+
+	move_area.left = 0x1308
+#if STANDALONE
+	// Show a bit more to the left, that looks better in widescreen
+	move_area.left = max(0x12e0, move_area.left - getScreenExtend())
+#endif
+
+	if (camera.position.x.u16 >= 0x1400)
+	{
+
+		// Switch to new checkpoint -- mainly for Sonic, so his intro gets skipped after death
+		checkpoint.number = 1
+		checkpoint.x = 0x13a0
+		checkpoint.y = 0x041a
+		Checkpoint.SaveCurrentState()
+
+		checkpoint.time = 0
+		requestLoadingPatterns(0x08)		// Monitor sprites
+		camera.update_routine += 2
+	}
+}
+
+//if your character is a sonic base, and you want them to have the tornado intro, you have to renderhook the object like this:
+function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
+{
+	//this is how sonic is rendered in the cutscene. not necessarily necessary for MISC mods with custom intros, or no intro.
+	// Cutscene Sonic in intro
+	if (objA0.update_address == 0x067472 && MISC.player1.character == CHARACTER_CUSTOM)
+	{
+		//in place of Standalone.drawCharacterSprite, instead put your character's draw function. e.g. Galore.drawAmy()
+		MISC.drawCHARACTER_CUSTOM(CHARACTER_CUSTOM, 0, px, py, false)
+		return true
+	}
+	return base.Standalone.onWriteToSpriteTable(px, py, renderQueue)
+}
+
+//Knuckles bases & tails bases require more intrusive code editing to change their intros. these will be covered in the CUSTOM INTROS addon.
