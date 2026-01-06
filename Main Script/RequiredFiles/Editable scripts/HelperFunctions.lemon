@@ -250,6 +250,15 @@ function string MISC.GetCharSpriteKey(u8 animationSprite, u8 character)
 	return base.MISC.GetCharSpriteKey(animationSprite, character)
 }
 
+function string MISC.getTailSpriteKey(u8 animationSprite)
+{
+	if character == CHARACTER_CUSTOM
+	{
+		return 0 //most characters don't have tails, so usually just return 0. but, on the off chance that your character DOES have a tail, you need to define a key here.
+	}
+	return base.MISC.getTailSpriteKey(animationSprite)
+}
+
 // Used for Discord statuses for your character's name, by default uses the same name as Act Select
 function string MISC.GetCharNameDiscordRPC(u8 character)
 {

@@ -471,7 +471,7 @@ function bool MISC.drawCHARACTER_CUSTOM(u8 character, u8 variant, s16 px, s16 py
 			}
 		}
 
-		key = stringformat(stringformat("%s_tails_0x%02x", getCharacterSpriteKey(CHARACTER_TAILS)), animationSprite)
+		key = MISC.getTailSpriteKey(animationSprite)
 		if (!Renderer.hasCustomSprite(key))
 		{
 			key = Renderer.setupCustomCharacterSprite(0x336620, 0x344d74, 0x344bb8, animationSprite, 0x00)

@@ -164,6 +164,10 @@ function void Character.BaseUpdate.MISCPartner()
 			{
 				control.misc.pad2 = control.pad2
 			}
+			else
+			{
+				control.misc.pad2 = control.tails
+			}
 
 			if (player2.control_override >= 0 && competition_mode.active == 0)
 			{
@@ -192,6 +196,10 @@ function void Character.BaseUpdate.MISCPartner()
 			if (player2.control_override == 0)
 			{
 				control.misc.pad2 = control.pad2
+			}
+			else
+			{
+				control.misc.pad2 = control.tails
 			}
 
 			if (player2.control_override >= 0 && competition_mode.active == 0)
@@ -1211,6 +1219,88 @@ function void fn01c4d0()
 	checkpoint.number = checkpoint
 }
 
+//Cutscene fix for MHZ 2
+//you don't really need to know what any of this does. just replace the BaseUpdate with your char
+//# address-hook(0x076404) end(0x076450)
+function void fn076404()
+{
+	MHZ2.cutscene.p2()
+	base.fn076404()
+}
+
+//# address-hook(0x076456) end(0x076468)
+function void fn076456()
+{
+	MHZ2.cutscene.p2()
+	base.fn076456()
+}
+
+
+//# address-hook(0x07646e) end(0x076490)
+function void fn07646e()
+{
+	if u32[0xffffb04a] == addressof(Character.BaseUpdate.MISCPartner) && MISC.GetFlyGlideBehaviour(0xffffb04a) != 1
+		UnloadObject()
+	else
+		base.fn07646e()
+}
+
+function void MHZ2.cutscene.p2()
+{
+	if u32[0xffffb04a] != addressof(Character.BaseUpdate.MISCPartner) || MISC.GetFlyGlideBehaviour(0xffffb04a) == 1
+		return
+
+	control.tails = 0x2000		// CONTROL_C, 0
+
+	A1 = 0xffffb04a
+	
+	if objA1.state != char.state.ROLLING && objA1.state != char.state.HOLDING_ON
+	{
+		playSound(SFX_JUMP)
+		objA1.hitbox_extends.x = char.hitbox.x.ROLLING
+		objA1.hitbox_extends.y = char.hitbox.y.ROLLING
+		objA1.state = char.state.ROLLING
+		objA1.flags2a |= (char.flag.IN_AIR | char.flag.ROLLING)
+		objA1.flags2a &= ~char.flag.CONTROL_LOCK
+		u8[A1 + 0x40] = 0x01
+	}
+	else if objA1.state == char.state.ROLLING && u8[0xffffb000 + 0x20] == char.state.ROLLING
+	{
+		objA1.velocity.y = s16[0xffffb000 + 0x1a]
+		if objA1.position.x.u16 > u16[0xffffb000 + 0x10]
+			objA1.position.x.u16 = u16[0xffffb000 + 0x10]
+	}
+	
+	if objA1.state != char.state.HOLDING_ON
+		objA1.render_flags &= ~render_flag.FLIP_X
+	
+	if (objA1.velocity.y < 0x200 && objA1.state != char.state.HOLDING_ON)
+	{
+		objA1.velocity.x = 0x390
+		return
+	}
+		
+	if (objA1.state != char.state.ROLLING && objA1.state != char.state.HOLDING_ON)
+		return
+
+	//objA0.update_address = 0x076456
+	StopObjectA1()
+
+	if objA1.state != char.state.HOLDING_ON
+	{
+		playSound(SFX_GRAB)
+		objA1.state = char.state.HOLDING_ON
+	}
+	else
+	{
+		objA1.position.x.u16 = u16[0xffffb000 + 0x10] + 3
+		objA1.position.y.u16 = u16[0xffffb000 + 0x14] + 10
+	}
+	
+	u8[A1 + 0x2a] |= 0x01
+	u8[A1 + 0x2e] = (control_flag.DISABLE_INTERACTION | control_flag.DISABLE_UPDATE)
+}
+
 //finally replace AI with different one, because tails & tails.
 
 define control.misc.pad2 = u16[0xfffff66c]
@@ -1223,6 +1313,15 @@ function void UpdateControllers()
     control.misc.pad2.state = Input.getController(1)
     control.misc.pad2.pressed = control.misc.pad2.state & ~Input.getControllerPrevious(1)
     base.UpdateControllers()
+}
+
+function u8 MISC.GetFlyGlideBehaviour(u32 address)
+{
+	u32 A0backup = A0
+	A0 = address
+	u8 base = MISC.GetFlyGlideBehaviour()
+	A0 = A0backup
+	return base
 }
 
 function u8 MISC.GetFlyGlideBehaviour()
