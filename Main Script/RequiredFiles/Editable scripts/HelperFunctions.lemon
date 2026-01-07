@@ -204,7 +204,7 @@ function string MISC.getBluesphereSpriteKey(u8 character)
 	{
 		return "bluesphere_char4"
 	}
-	return base.getCharacterBluesphereSpriteKey(character)
+	return base.MISC.getBluesphereSpriteKey(character)
 }
 
 // Modify to include your character's Blue Sphere special stage palette
