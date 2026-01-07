@@ -196,9 +196,11 @@ function string getMISCPaletteKey(u8 character)
 // for more complex palette loading criteria, check AdvancedFunctions.
 
 // Modify to include your character's Blue Sphere special stage sprites
-function string getCharacterBluesphereSpriteKey(u8 character)
+// this function needs to be MISC exclusive because of how janky bluespheres is.
+// note that IF your character has a tail, the sprite in question would be the key with "_tails" at the end of it.
+function string MISC.getBluesphereSpriteKey(u8 character)
 {
-	if (global.characters == CHARACTER_CUSTOM)
+	if (character == CHARACTER_CUSTOM)
 	{
 		return "bluesphere_char4"
 	}
@@ -206,9 +208,10 @@ function string getCharacterBluesphereSpriteKey(u8 character)
 }
 
 // Modify to include your character's Blue Sphere special stage palette
+// bluesphere sprites are renderhooked, so don't worry about using the wrong variable
 function string getCharacterBluespherePaletteKey(u8 character)
 {
-	if (global.characters == CHARACTER_CUSTOM)
+	if (character == CHARACTER_CUSTOM)
 	{
 		return "bluesphere_palette_char4"
 	}

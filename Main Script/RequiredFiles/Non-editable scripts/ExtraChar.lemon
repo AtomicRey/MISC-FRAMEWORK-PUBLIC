@@ -316,6 +316,81 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 			return true
 		}
 	}
+	
+	bool prioFlag = (objA0.sprite_attributes & sprite_attribute.PRIORITY) != 0
+	
+	// Characters in special stage
+	if ((objA0.update_address == 0x00903e && MISC.player1.character > 3) || (objA0.update_address == 0x00927a && MISC.player2.character > 3))
+	{
+		//This just uses the base MISC character's sprite key.
+	
+		u8 character = (objA0.update_address == 0x00927a) ? MISC.player2.character : MISC.player1.character
+		u8 atex = (character == CHARACTER_TAILS) ? 0x10 : 0x00
+		u64 key = stringformat(stringformat("%s_0x%02x", MISC.getBluesphereSpriteKey(character)), objA0.animation.sprite)
+		if (Renderer.hasCustomSprite(key))
+		{
+			// Check if there's also a custom palette
+			string paletteKey = getCharacterBluespherePaletteKey(character)
+			if (System.hasExternalPaletteData(paletteKey, 0))
+			{
+				atex = 0x40 + ((objA0.update_address == 0x00927a) ? 0x20 : 0)
+			}
+
+			u16 numColors = System.loadExternalPaletteData(paletteKey, 0, 0x800000, 0x20)
+			if (numColors > 0)
+			{
+				u32 dest = 0x802180 + ((objA0.update_address == 0x00927a) ? 0x40 : 0)
+				for (u16 i = 0; i < numColors; ++i)
+				{
+					if u16[dest + i * 2] != packColor(u32[0x800000 + i * 4])
+						u16[dest + i * 2] = packColor(u32[0x800000 + i * 4])
+				}
+			}
+		}
+		else //FAILSAFE, use base characters' sprites.
+		{
+			character = getSecondCharacter()
+			atex = (character == CHARACTER_TAILS) ? 0x10 : 0x00
+			if (character == CHARACTER_SONIC)
+				key = Renderer.setupCustomCharacterSprite(0x0aaa7c, 0x0abe14, 0x000abdfc, objA0.animation.sprite, atex)
+			else if (character == CHARACTER_TAILS)
+				key = Renderer.setupCustomCharacterSprite(0x28f95a, 0x2908d2, objA0.mapping_offset, objA0.animation.sprite, atex)
+			else
+				key = Renderer.setupCustomCharacterSprite(0x0abf22, 0x0ad31a, 0x0ad302, objA0.animation.sprite, atex)
+
+			if (ROMDataAnalyser.isEnabled())
+				Renderer.extractCustomSprite(key, getCharacterBluesphereSpriteKey(character), objA0.animation.sprite, atex)
+		}
+		Renderer.drawCustomSprite(key, px, py, atex, prioFlag ? SPRITE_FLAG_PRIO : 0, renderQueue)
+
+		if MISC.useTailsTails(character)
+		{
+			u8 speed = min(7 - (bluespheres.movement_speed / 0x100) / 8, 5)
+			key = stringformat(stringformat("%s_tails_0x%02x", MISC.getBluesphereSpriteKey(character)), ((global.framecounter/speed) % 13) + 1)
+			if !(Renderer.hasCustomSprite(key))
+			{
+				key = Renderer.setupCustomCharacterSprite(0x2909e8, 0x291106, 0x2910e8, ((global.framecounter/speed) % 13) + 1, atex)
+
+				if (ROMDataAnalyser.isEnabled())
+					Renderer.extractCustomSprite(key, stringformat("%s_tails", getCharacterBluesphereSpriteKey(CHARACTER_TAILS)), ((global.framecounter/speed) % 13) + 1, atex)
+			}
+			
+			Renderer.drawCustomSprite(key, px, py, atex, prioFlag ? SPRITE_FLAG_PRIO : 0, renderQueue+1)
+		}
+		
+		return true
+	}
+	
+	// Tails' tails object in special stage
+	if (objA0.update_address == 0x009488)
+	{
+		u16 val = u16[A0 + 0x3e]
+		
+		if val == 0xb000 && MISC.player1.character > 3
+			return true
+		else if val == 0xb04a && MISC.player2.character > 3
+			return true
+	}
 
 	if (objA0.update_address == 0x0837b2) && global.characters > 3 //signpost fixes
 	{
