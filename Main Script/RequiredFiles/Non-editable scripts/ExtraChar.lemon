@@ -515,6 +515,20 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 			return true
 		}
 	}
+	
+	// Character sprites for piloting the Tornado in Sonic's intro
+	if (objA0.update_address == 0x0677ce || objA0.update_address == 0x067800)
+	{
+		u8 character = MISC.getCharBase(MISC.player2.character)
+		u8 atex = 0x40 + character * 0x20
+		u64 key = MISC.getCustomPilot(character)
+		if (Renderer.hasCustomSprite(key))
+		{
+			Renderer.drawCustomSprite(key, px, py-16, atex, prioFlag, renderQueue+2)
+			Renderer.addSpriteMask(px-12, py-24, 24, 16, renderQueue+1, 0)		// Masking off the original Tails pilot sprite, #contributed by iCloudius, based on scripts by GFX32
+		}
+		return false
+	}
 
 	//this is only if you want a custom pilot (not sonic tails or knux) in the big & small variants, mini variants have a whole different thing.
 	// Character sprites for riding the Tornado in the ending
