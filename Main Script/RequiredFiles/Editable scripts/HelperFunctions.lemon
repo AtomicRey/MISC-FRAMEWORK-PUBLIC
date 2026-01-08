@@ -225,6 +225,7 @@ function string MISC.getContinueIcons(u8 frame) //frames go between 0 and 1
 	{
 		return stringformat("continue_icon_charcustom_%d", frame)
 	}
+	return base.MISC.getContinueIcons(frame)
 }
 
 // Character sprites for their continue animations
@@ -234,6 +235,7 @@ function string MISC.getContinueSprites(u8 frame) //frames go between 0 and 1
 	{
 		return stringformat("character_charcustom_continue_%d", frame)
 	}
+	return base.MISC.getContinueSprites(frame)
 }
 
 // for special continue sprites SPECIFIC TO HAVING A PARTNER, check AdvancedFunctions.lemon
