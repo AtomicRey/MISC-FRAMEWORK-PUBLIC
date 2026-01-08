@@ -253,7 +253,7 @@ function string MISC.GetCharSpriteKey(u8 animationSprite, u8 character)
 	return base.MISC.GetCharSpriteKey(animationSprite, character)
 }
 
-function string MISC.getTailSpriteKey(u8 animationSprite)
+function string MISC.getTailSpriteKey(u8 animationSprite, u8 character)
 {
 	if character == CHARACTER_CUSTOM
 	{
