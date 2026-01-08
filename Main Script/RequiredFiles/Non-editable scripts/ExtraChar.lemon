@@ -476,6 +476,45 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 			return base.Standalone.onWriteToSpriteTable(px, py, renderQueue)
 		}
 	}
+	// Character sprites for riding the Tornado in the ending
+	if (objA0.update_address == 0x05ebb4 || objA0.update_address == 0x05ed18) && global.characters > 3
+	{
+		string key = 0
+		u8 atex = 0
+		u8 character = MISC.player2.character
+		if (objA0.update_address == 0x05ebb4)
+		{
+			key = MISC.getCustomPilot(character)
+		}
+		else //if (objA0.update_address == 0x05ed18)
+		{
+			if (objA0.subtype2c != 0)
+				character = MISC.player1.character
+			key = stringformat("%s_small", getCharacterTornadoSpriteKey(character))
+			
+			if (objA0.subtype2c == 0)
+				key = stringformat("%s_small", MISC.getCustomPilot(character))
+
+			if (objA0.subtype2c != 0 && isMainCharacter(CHARACTER_KNUCKLES) && outro.ending_type < 0)
+			{
+				// Replace Knuckles' smaller tornado sprite with a more fitting sprite in bad ending
+				key = stringformat((global.zone_act == 0x0d01) ? "%s_small_standing" : "%s_small_exhausted", getCharacterTornadoSpriteKey(character))
+			}
+		}
+
+		atex = 0x40 + character * 0x20
+		if (Renderer.hasCustomSprite(key))
+		{
+			if (objA0.subtype2c != 0 && isMainCharacter(CHARACTER_KNUCKLES) && outro.ending_type >= 0)
+			{
+				// Render the Master Emerald sprite separately
+				Renderer.drawVdpSprite(px-18, py-24, 0x0d, sprite_attribute.PRIORITY | sprite_attribute.FLIP_X | sprite_attribute.PALETTE.LINE2 | 0x02e7, renderQueue-1)
+				Renderer.drawVdpSprite(px-10, py-8, 0x04, sprite_attribute.PRIORITY | sprite_attribute.FLIP_X | sprite_attribute.PALETTE.LINE2 | 0x02ef, renderQueue-1)
+			}
+			Renderer.drawCustomSprite(key, px, py, atex, (objA0.render_flags & render_flag.FLIP_X) | (prioFlag ? SPRITE_FLAG_PRIO : 0), renderQueue)
+			return true
+		}
+	}
 
 	//this is only if you want a custom pilot (not sonic tails or knux) in the big & small variants, mini variants have a whole different thing.
 	// Character sprites for riding the Tornado in the ending
@@ -1848,6 +1887,28 @@ function bool disableOriginsIntrosContent()
         return true
     else
         return base.disableOriginsIntrosContent()
+}
+
+function string getCharacterEndPosePaletteKey(u8 character)
+{
+	if global.characters >= 4
+		return getMISCPaletteKey(global.characters)
+	return base.getCharacterEndPosePaletteKey(character)
+}
+
+function void loadCharacterEndPosePalette(u8 character, u32 targetAddress, u8 paletteVariant)
+{
+	if ((global.characters < 4))
+	{
+		base.loadCharacterEndPosePalette(character, targetAddress, paletteVariant)
+		return
+	}
+	u16 numColors = System.loadExternalPaletteData(getCharacterEndPosePaletteKey(character), 0, 0x800000, 0x20)
+	for (u8 i = 0; i < numColors; ++i)
+	{
+		u32 rgba = u32[0x800000 + i * 4]
+		u16[targetAddress + i * 2] = packColorExt(rgba)
+	}
 }
 
 //# address-hook(0x07b2dc) end(0x07b3a6)

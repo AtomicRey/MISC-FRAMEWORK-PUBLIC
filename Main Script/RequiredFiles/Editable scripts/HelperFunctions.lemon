@@ -111,7 +111,7 @@ function string getCharacterLivesIcon(u8 character)
 {
 	// example, change to your own slot
 	if global.characters == CHARACTER_CUSTOM
-		return "hud_lives_icon_char4"
+		return "hud_lives_icon_custom"
 	return base.getCharacterLivesIcon(character)
 }
 
@@ -121,7 +121,7 @@ function string getCharacterContinueIcon(u8 character)
 	// example, change to your own slot
 	// Special handling for active extra character
 	if global.characters == CHARACTER_CUSTOM
-		return "continue_icon_char4"
+		return "continue_icon_custom"
 	
 	 // Call the base function
 	return base.getCharacterContinueIcon(character)
@@ -133,7 +133,7 @@ function string getCharacterResultsNameplate(u8 character)
 {
 	// example, change to your own slot
 	if global.characters == CHARACTER_CUSTOM
-		return "result_nameplate_char4"
+		return "result_nameplate_custom"
 	return base.getCharacterResultsNameplate(character)
 }
 
@@ -142,7 +142,7 @@ function string getCharacterSignpostSpriteKey(u8 character)
 {
 	if (character == CHARACTER_CUSTOM)
 	{
-		return "signpost_char4"
+		return "signpost_custom"
 	}
 	
 	// Call the base function
@@ -154,7 +154,7 @@ function string getCharacterEndPoseSpriteKey(u8 character, bool isSuperActive)
 {
 	if character == CHARACTER_CUSTOM
 		return stringformat((isSuperActive) ? "endpose_char%s_super" : "endpose_char%s", character)
-		//load seperate super/base endpose sprites. super is endpose_char4_super, base is endpose_char4
+		//load seperate super/base endpose sprites. super is endpose_custom_super, base is endpose_custom
 	return base.getCharacterEndPoseSpriteKey(character, isSuperActive)
 }
 
@@ -202,7 +202,7 @@ function string MISC.getBluesphereSpriteKey(u8 character)
 {
 	if (character == CHARACTER_CUSTOM)
 	{
-		return "bluesphere_char4"
+		return "bluesphere_custom"
 	}
 	return base.MISC.getBluesphereSpriteKey(character)
 }
@@ -213,7 +213,7 @@ function string getCharacterBluespherePaletteKey(u8 character)
 {
 	if (character == CHARACTER_CUSTOM)
 	{
-		return "bluesphere_palette_char4"
+		return "bluesphere_palette_custom"
 	}
 	return base.getCharacterBluespherePaletteKey(character)
 }
@@ -259,7 +259,7 @@ function string MISC.getTailSpriteKey(u8 animationSprite, u8 character)
 	{
 		return 0 //most characters don't have tails, so usually just return 0. but, on the off chance that your character DOES have a tail, you need to define a key here.
 	}
-	return base.MISC.getTailSpriteKey(animationSprite)
+	return base.MISC.getTailSpriteKey(animationSprite, character)
 }
 
 // Used for Discord statuses for your character's name, by default uses the same name as Act Select
@@ -388,11 +388,11 @@ function string MISC.getClearPortrait(u8 ending, u8 slotnum)
 	// the following keys are just examples, and can really just be whatever,
 	// however center values for the sprites MUST be "Center": "40,120"
 	if (ending == 1)
-		key = "dataSel_savePortrait_char4"
+		key = "dataSel_savePortrait_custom"
 	else if (ending == 2)
-		key = "dataSel_savePortrait_superchar4"
+		key = "dataSel_savePortrait_supercustom"
 	else if (ending == 3)
-		key = "dataSel_savePortrait_clear_char4"
+		key = "dataSel_savePortrait_clear_custom"
 	if (Renderer.hasCustomSprite(key))
 		return key
 	return false
@@ -498,13 +498,44 @@ function u8 MISC.getSmallPilot(u8 slotnum)
 	// 3 - sonic (knuckles' version)
 }
 
+//if you have no custom pilot, you can just make this base the function. BUT. in the scenario where there IS one necessary, you may need it.
+//better to be safe than sorry!
+function string MISC.getCustomPilot(u8 character)
+{
+	//this is renderhooked, so character will work fine.
+	//also note that in this case, "character" is whoever player 2 is. so if your character is ever player 2, this is what the pilot sprite will be.
+	if character != CHARACTER_CUSTOM
+		return base.MISC.getCustomPilot(character)
+
+	//note that this also controls the small sprite
+	//so if your string is "custom", the small string is "custom_small"
+	return "" //if you return nothing, it will just use the default pilot
+}
+
+function string getCharacterTornadoSpriteKey(u8 character)
+{
+	//this is renderhooked, so character will work fine.
+	if character != CHARACTER_CUSTOM
+		return base.getCharacterTornadoSpriteKey(character)
+
+	// This function is actually used for a few things in base 3air that I'll explain here.
+	// the string entered here has to be the prefix to a larger string.
+	// assuming "custom" is the inputted prefix, the other strings used are:
+	// custom_small (used for smaller sonic, but not micro. which is weirdly never accounted for in base?)
+	// custom_small_standing (used in knux good ending)
+	// custom_small_exhausted (used in knux bad ending)
+	// please account for these in your sprites depending on when and where your character appears.
+
+	return "custom"
+}
+
 // Change to a sprite key for the smallest version of your character riding the Tornado in the ending
 function string MISC.getMiniChar(u8 slotnum)
 {
 	if slotnum != CHARACTER_CUSTOM
 		return base.MISC.getMiniChar(slotnum)
 
-	return "MiniChar4" //replace with your slot
+	return "MiniCharCustom" //replace with your slot
 }
 
 function void MISC.DrawS3CIcon()
@@ -528,7 +559,7 @@ function void MISC.DrawS3CIcon()
 		s16 player1offset = getScreenExtend() + 247 + lselect_icon_offset
 		s16 player2offset = getScreenExtend() + 262 + lselect_icon_offset
 	
-		Renderer.drawCustomSprite("s3c_char4", player1offset, 115, 0x00, 0, 0x2000) //replace with your sprites (only player 1. to render player 2, just copy and replace "player1offset" with player 2's.
+		Renderer.drawCustomSprite("s3c_custom", player1offset, 115, 0x00, 0, 0x2000) //replace with your sprites (only player 1. to render player 2, just copy and replace "player1offset" with player 2's.
 	}
 	base.MISC.DrawS3CIcon()
 }
@@ -540,7 +571,7 @@ function string MISC.getEndLogoSprites(u8 animation)
 	if (global.characters != CHARACTER_CUSTOM) // Your character here
 		return base.MISC.getEndLogoSprites(animation)
 	
-	return stringformat("endlogo_char4_0x%02x", animation) // Replace char4 with your slot
+	return stringformat("endlogo_custom_0x%02x", animation) // Replace custom with your slot
 }
 
 // for advanced animation timings, look at AdvancedFunctions.lemon
