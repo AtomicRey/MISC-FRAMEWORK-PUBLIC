@@ -49,6 +49,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	if (objA0.update_address == 0x067472 && MISC.player1.character == CHARACTER_CUSTOM)
 	{
 		//in place of Standalone.drawCharacterSprite, instead put your character's draw function. e.g. Galore.drawAmy()
+		MISC.player = MISC.player1.character
 		MISC.drawCHARACTER_CUSTOM(CHARACTER_CUSTOM, 0, px, py, false)
 		return true
 	}

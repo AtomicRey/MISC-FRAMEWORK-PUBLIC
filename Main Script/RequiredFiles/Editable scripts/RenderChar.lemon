@@ -15,6 +15,8 @@ function void MISC.UpdateAnimation(u8 character)
 	}
 	
 	bool IsPlayer1 = (A0 == 0xffffb000) //a check for if the animations are updating for player 1 or not. this can be used to make certain animations only play for player 1.
+	if objA0.update_address == 0x067472 //sonic on the tornado
+		isPlayer1 = true
 	
 	//BY DEFAULT, this uses the contents of UpdateSonicAnimation(), however if you want the character to use tails/knuckles animation logic, use the contents of those instead.
 	//Important to note, unless you have a good reason to use different animation logic than your character's base, you should just use the contents of the character base's update function.
@@ -177,6 +179,9 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 function bool MISC.drawCHARACTER_CUSTOM(u8 character, u8 variant, s16 px, s16 py, bool asSmallGhost) // you can change this name obviously, but you need to change the function that's called in the code above.
 {
 	bool isPlayer1 = (A0 == 0xffffb000)
+	if objA0.update_address == 0x067472 //sonic on the tornado
+		isPlayer1 = true
+	
 	u32 characterAddress = A0
 	
 	// Check only needed for Tails' tails
@@ -490,7 +495,7 @@ function bool MISC.drawCHARACTER_CUSTOM(u8 character, u8 variant, s16 px, s16 py
 		if variant == 2
 			player = (u16[A0 + 0x30] == 0xb000) ? 0 : (u16[A0 + 0x30] == 0xb04a) ? 1 : (u16[A0 + 0x30] == 0xc2ca) ? 2 : 3
 		else
-			player = (A0 == 0xffffb000) ? 0 : (A0 == 0xffffb04a) ? 1 : (A0 == 0xffffc2ca) ? 2 : 3
+			player = (isPlayer1) ? 0 : (A0 == 0xffffb04a) ? 1 : (A0 == 0xffffc2ca) ? 2 : 3
 		
 		atex = 0x40 + player * 0x20
 	}
