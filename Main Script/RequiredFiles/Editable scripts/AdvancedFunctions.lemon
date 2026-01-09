@@ -68,6 +68,17 @@ function string MISC.getPartnerContinueSprites(u8 frame)
 	//return stringformat("charcustom_partner_continue_%d", (global.framecounter >> 0x04) % 0x02 ? 0 : 1)
 }
 
+//the continue sprites while your character IS a partner
+function string MISC.getContinueSpritesP2(u8 frame)
+{
+	if (MISC.player2.character != CHARACTER_CUSTOM)
+		return base.MISC.getContinueSpritesP2(frame)
+	return false //delete this line if you uncomment the P2 continue stuff
+
+	//this is for your custom continue sprites IF YOUR CHARACTER IS A PARTNER. as in, they are the 2nd player in the continue screen.
+	//return stringformat("charcustom_p2_continue_%d", frame)
+}
+
 /*
 	COMPLEX ZONE ORDER & SELECTION CODE
 	please only edit if necessary

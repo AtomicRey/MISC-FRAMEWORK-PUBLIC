@@ -606,12 +606,12 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		}
 		else
 		{
-			if (objA0.update_address == 0x05c55c || objA0.update_address == 0x05c588)
+			if (objA0.update_address == 0x05c55c || objA0.update_address == 0x05c588 || objA0.update_address == 0x05c74a)
 			{
-				u8 character = (objA0.update_address == 0x05c55c || (objA0.update_address == 0x05c588 && !MISC.HaveCharacterTurnAround(global.characters))) ? CHARACTER_SONIC : (objA0.update_address == 0x05c74a) ? CHARACTER_TAILS : CHARACTER_KNUCKLES
-				u8 atex = 0x40 + character * 0x20
+				bool isPlayer1 = (objA0.update_address == 0x05c55c || (objA0.update_address == 0x05c588 && !MISC.HaveCharacterTurnAround(global.characters))) ? true : false
+				u8 atex = 0x40 + !isPlayer1 * 0x20
 				u64 key
-				if character == getMainCharacter()
+				if isPlayer1
 				{
 					key = MISC.getPartnerContinueSprites(global.characters)
 					if !(Renderer.hasCustomSprite(key))
@@ -623,16 +623,16 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 					}
 				}
 				else
-					{
-					key = stringformat("%s_continue_0x%02x", getCharacterSpriteKey(character, false), (character == CHARACTER_SONIC) ? objA0.animation.sprite : (character == CHARACTER_TAILS) ? objA0.animation.sprite-5 : objA0.animation.frame)
-					}
+				{
+					key = MISC.getContinueSpritesP2(objA0.animation.sprite-5)
+				}
+				
 				if (Renderer.hasCustomSprite(key))
 				{
 					Renderer.drawCustomSprite(key, px, py, atex, flags, renderQueue+10)
 					return true
 				}
 			}
-			return base.Standalone.onWriteToSpriteTable(px, py, renderQueue)
 		}
 	}
 	
