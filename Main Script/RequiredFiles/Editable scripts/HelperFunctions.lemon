@@ -1,9 +1,7 @@
 // Unedited base game functions that should be changed in order to properly load your character.
 
-#if !MISC_ACTIVE
 define MISC.player1.character		= u16[0xffffff08] //literally exactly the same as MISC.player1.character, renamed for consistency
 define MISC.player2.character		= u16[0xffffff0c] //used to determine the 2nd player character. (USED IN THE CUSTOM PLAYER 2 ADDON)
-#endif
 
 //to define a character, create a global variable as shown here. make sure it's set to zero!
 global u8 CHARACTER_CUSTOM = 0
