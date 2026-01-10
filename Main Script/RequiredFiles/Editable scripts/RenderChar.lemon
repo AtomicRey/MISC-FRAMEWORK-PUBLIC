@@ -14,7 +14,7 @@ function void MISC.UpdateAnimation(u8 character)
 		return
 	}
 	
-	bool IsPlayer1 = (A0 == 0xffffb000) //a check for if the animations are updating for player 1 or not. this can be used to make certain animations only play for player 1.
+	bool isPlayer1 = (A0 == 0xffffb000) //a check for if the animations are updating for player 1 or not. this can be used to make certain animations only play for player 1.
 	if objA0.update_address == 0x067472 //sonic on the tornado
 		isPlayer1 = true
 	
