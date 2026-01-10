@@ -3,7 +3,7 @@
 
 function void MISC.loadEndScreenPalette() //if you want, you can change this, but uh.... probably wouldn't recommend it.
 {
-	if (global.characters == CHARACTER_CUSTOM)
+	if (MISC.player1.character == CHARACTER_CUSTOM)
 	{
 		loadCharacterPalette(CHARACTER_CUSTOM, 0x802240, 0)
 		return
@@ -60,7 +60,7 @@ function bool MISC.HaveCharacterTurnAround(u8 slot)
 //the continue sprites while with a partner
 function string MISC.getPartnerContinueSprites(u8 frame)
 {
-	if (global.characters != CHARACTER_CUSTOM)
+	if (MISC.player1.character != CHARACTER_CUSTOM)
 		return base.MISC.getPartnerContinueSprites(frame)
 	return false //delete this line if you uncomment the partner continue stuff
 
@@ -246,7 +246,7 @@ function void fn00c890()
 // Note that if AI tails is set to spawn in cnz, it will default to the original intro. you can change this if you wish by editing the parameters specific to your character
 function void MISC.DoCustomIntroInteractions()
 {
-	if (SpawnAITails(global.characters) || (global.characters != CHARACTER_CUSTOM) || checkpoint.number != 0) // if Tails carry into zone intros enabled or not MISC in CNZ or MHZ
+	if (SpawnAITails(MISC.player1.character) || (MISC.player1.character != CHARACTER_CUSTOM) || checkpoint.number != 0) // if Tails carry into zone intros enabled or not MISC in CNZ or MHZ
 	{
 		base.MISC.DoCustomIntroInteractions()
 		return
@@ -272,7 +272,7 @@ function void MISC.DoCustomIntroInteractions()
 //# address-hook(0x01be46) end(0x01bfae)
 function void SetupCharacterAtStartPosition()
 {
-	if ((global.characters != CHARACTER_CUSTOM) || checkpoint.number != 0) // if Tails carry into zone intros enabled or not MISC in CNZ or MHZ
+	if ((MISC.player1.character != CHARACTER_CUSTOM) || checkpoint.number != 0) // if Tails carry into zone intros enabled or not MISC in CNZ or MHZ
 	{
 		base.SetupCharacterAtStartPosition()
 		return
@@ -288,14 +288,14 @@ function void SetupCharacterAtStartPosition()
 
 	base.SetupCharacterAtStartPosition()
 
-	if (global.zone_act == 0x0300) && !SpawnAITails(global.characters)
+	if (global.zone_act == 0x0300) && !SpawnAITails(MISC.player1.character)
 	{
 		// Carnival Night Act 1
 		u16[0xffffb010] = 0x08
 		u16[0xffffb014] = 0x6cc // Set pos to ground, or close enough.
 		camera.position.y.u16 = 0x66c //Correct camera positions
 	}
-	else if (global.zone_act == 0x0700) && !SpawnAITails(global.characters)
+	else if (global.zone_act == 0x0700) && !SpawnAITails(MISC.player1.character)
 	{
 		// Mushroom Hill Act 1
 		if (!isMainCharacter(CHARACTER_KNUCKLES))
@@ -313,7 +313,7 @@ function void SetupCharacterAtStartPosition()
 
 function u8 MISC.EndLogoGetAnimTimings(u8 AnimEnd) //determines your character's frame timings for the end logo sprites.
 {
-	if (global.characters != CHARACTER_CUSTOM) // Replace with your char
+	if (MISC.player1.character != CHARACTER_CUSTOM) // Replace with your char
 		return base.MISC.EndLogoGetAnimTimings(AnimEnd)
 	
 	/*
@@ -362,9 +362,9 @@ function string getCharacterPaletteKey(u8 character)
 		//Load base characters' palette if the player 2 is a base character
 		return base.getCharacterPaletteKey(character)
 	}
-    if (global.characters == CHARACTER_CUSTOM) && (character == CHARACTER_SONIC && objA0.update_address != 0x05f376) && global.game_mode != 0x30
+    if (MISC.player1.character == CHARACTER_CUSTOM) && (character == CHARACTER_SONIC && objA0.update_address != 0x05f376) && global.game_mode != 0x30
     {
-		return getMISCPaletteKey(global.characters)
+		return getMISCPaletteKey(MISC.player1.character)
     }
 	else if character == CHARACTER_CUSTOM
 	{

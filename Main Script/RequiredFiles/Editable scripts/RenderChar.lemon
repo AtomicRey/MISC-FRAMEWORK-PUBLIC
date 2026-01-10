@@ -140,7 +140,7 @@ function void UpdateKnucklesAnimation()
 //This function allows you to assign custom sprite keys for custom animations.
 function u64 Standalone.getModdedAnimationSpriteKey(u8 character, u16 animationSpriteEx)
 {
-	if (global.characters == CHARACTER_CUSTOM) && char.base_state == base_state.NORMAL && global.zone != 0x15 && !(char.control_flags & control_flag.DISABLE_UPDATE)
+	if (MISC.player1.character == CHARACTER_CUSTOM) && char.base_state == base_state.NORMAL && global.zone != 0x15 && !(char.control_flags & control_flag.DISABLE_UPDATE)
 	{
 		//Example animation
 		/*

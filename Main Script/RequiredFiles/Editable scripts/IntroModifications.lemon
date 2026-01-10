@@ -5,7 +5,7 @@
 //if you want your character to have no intro, use this. otherwise, you can remove it.
 function bool isSonicIntro()
 {
-	if global.characters != CHARACTER_CUSTOM || global.zone_act != 0x0000 || checkpoint.number != 0
+	if MISC.player1.character != CHARACTER_CUSTOM || global.zone_act != 0x0000 || checkpoint.number != 0
 		return base.isSonicIntro()
 	return false
 }
@@ -14,7 +14,7 @@ function bool isSonicIntro()
 //# address-hook(0x01c4d0) end(0x01c54e)
 function void fn01c4d0()
 {
-	if global.characters != CHARACTER_CUSTOM
+	if MISC.player1.character != CHARACTER_CUSTOM
 	{
 		base.fn01c4d0()
 		return

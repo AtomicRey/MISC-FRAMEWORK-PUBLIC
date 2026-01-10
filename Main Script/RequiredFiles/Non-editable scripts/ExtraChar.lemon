@@ -4,20 +4,20 @@
 #endif
 
 //Added define for preprocessor check to allow compat with other mods without any one specific MISC mod needing to be active. (contributed by Nabbup)
-#define MISC_ACTIVE = 3
+#define MISC_ACTIVE = 4
 
 function u8 getMainCharacter()
 {
-	if global.characters > 3
-		return MISC.getCharBase(global.characters)
+	if MISC.player1.character > 3
+		return MISC.getCharBase(MISC.player1.character)
 	else
 		return base.getMainCharacter()
 }
 
 function u8 getSecondCharacter()
 {
-	if MISC.GetPartner(global.characters + 1) != 0xff && global.characters > 3
-		return MISC.GetPartner(global.characters + 1)
+	if MISC.GetPartner(MISC.player1.character + 1) != 0xff && MISC.player1.character > 3
+		return MISC.GetPartner(MISC.player1.character + 1)
 	else
 		return base.getSecondCharacter()
 }
@@ -273,6 +273,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 {
 	u16 characters = (objA0.update_address == 0x00d30c) ? dataselect.nosave_characters : u16[A0 + 0x34]
 	u8 slotnum = (characters != 0) ? characters - 1 : characters // Character selection AFTER Knuckles & Tails
+	u8 gameMode = global.game_mode & 0x7f
 	bool prioFlag = (objA0.sprite_attributes & 0x8000) != 0x00
 
 	// Render character in data select, or they'll be a random sprite from the Data Select
@@ -296,11 +297,49 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	//renderhook the bluespheres results screen char sprite
 	if (objA0.update_address == 0x04dfee || objA0.update_address == 0x04dffe || objA0.update_address == 0x04e000)
 	{
-		if global.characters >= 4
+		if MISC.player1.character >= 4
 		{
-			MISC.drawCharSprite(px, py+20, renderQueue, global.characters)
+			MISC.drawCharSprite(px, py+20, renderQueue, MISC.player1.character)
 			return true
 		}
+	}
+	
+	// Continue icon
+	if (objA0.update_address == 0x02ebe8 && objA0.animation.sprite >= 0x29 && objA0.animation.sprite <= 0x2b) && MISC.player1.character > 3
+	{
+		// Enforce priority flag in special stage results screen for Super Emeralds, as it's supposed to be set, but is not part of "objA0.sprite_attributes"
+		if (global.game_mode == 0x48 && global.traded_emeralds)
+			prioFlag = true
+
+		string key = getCharacterContinueIcon(MISC.player1.character)
+		
+		if !(Renderer.hasCustomSprite(key))
+			key = getCharacterContinueIcon(getMainCharacter())
+			
+		Renderer.drawCustomSprite(key, px, py, 0x40 + MISC.getCharBase(MISC.player1.character) * 0x20, prioFlag ? SPRITE_FLAG_PRIO : 0, renderQueue)
+		return true
+	}
+	
+	// Level results texts
+	if (objA0.update_address == 0x02dd98) && MISC.player1.character > 3
+	{
+		if (objA0.animation.sprite == 0x0b)
+			MISC.handleBonusIcon(px+36, py-5, renderQueue)
+		else if (objA0.animation.sprite == 0x0c)
+			MISC.handleBonusIcon(px+37, py-5, renderQueue)
+	}
+	
+	// Blue Spheres results texts
+	if (objA0.update_address == 0x02ea50 || objA0.update_address == 0x02ec1e) && MISC.player1.character > 3
+	{
+		if (objA0.animation.sprite == 0x17 || objA0.animation.sprite == 0x31 || objA0.animation.sprite == 0x36)
+			MISC.handleBonusIcon(px-60, py-5, renderQueue)
+		else if (objA0.animation.sprite == 0x18 || objA0.animation.sprite == 0x32 || objA0.animation.sprite == 0x37)
+			MISC.handleBonusIcon(px+77, py-5, renderQueue)
+		else if (objA0.animation.sprite == 0x19 || objA0.animation.sprite == 0x33 || objA0.animation.sprite == 0x38)
+			MISC.handleBonusIcon(px+52, py-5, renderQueue)
+		else if (objA0.animation.sprite == 0x1a || objA0.animation.sprite == 0x34 || objA0.animation.sprite == 0x39)
+			MISC.handleBonusIcon(px+60, py-5, renderQueue)
 	}
 	
 	// Bluesphere game menu;
@@ -390,7 +429,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 			return true
 	}
 
-	if (objA0.update_address == 0x0837b2) && global.characters > 3 //signpost fixes
+	if (objA0.update_address == 0x0837b2) && MISC.player1.character > 3 //signpost fixes
 	{
 		if (objA0.animation.sprite == 0x00)
 		{		
@@ -400,11 +439,11 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 			//Depending on who the loaded MISC is a base of, will replace respective signpost.
 			u8 character
 			if getMainCharacter() == CHARACTER_SONIC
-				character = (objA0.animation.sprite == 0) ? global.characters : (objA0.animation.sprite == 1) ? CHARACTER_TAILS : (objA0.animation.sprite == 2) ? CHARACTER_KNUCKLES : 0xff
+				character = (objA0.animation.sprite == 0) ? MISC.player1.character : (objA0.animation.sprite == 1) ? CHARACTER_TAILS : (objA0.animation.sprite == 2) ? CHARACTER_KNUCKLES : 0xff
 			else if getMainCharacter() == CHARACTER_TAILS
-				character = (objA0.animation.sprite == 0) ? CHARACTER_SONIC : (objA0.animation.sprite == 1) ? global.characters : (objA0.animation.sprite == 2) ? CHARACTER_KNUCKLES : 0xff
+				character = (objA0.animation.sprite == 0) ? CHARACTER_SONIC : (objA0.animation.sprite == 1) ? MISC.player1.character : (objA0.animation.sprite == 2) ? CHARACTER_KNUCKLES : 0xff
 			else if getMainCharacter() == CHARACTER_KNUCKLES
-				character = (objA0.animation.sprite == 0) ? CHARACTER_SONIC : (objA0.animation.sprite == 1) ? CHARACTER_TAILS : (objA0.animation.sprite == 2) ? global.characters : 0xff
+				character = (objA0.animation.sprite == 0) ? CHARACTER_SONIC : (objA0.animation.sprite == 1) ? CHARACTER_TAILS : (objA0.animation.sprite == 2) ? MISC.player1.character : 0xff
 
 			if (character != 0xff)
 				key = getCharacterSignpostSpriteKey(character) //note that you will need to edit this function to accomodate for more signposts
@@ -420,18 +459,18 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		u8 atex = (objA0.update_address == 0x05e18a) ? 0x20 : 0
 		u8 flags = prioFlag ? SPRITE_FLAG_PRIO : 0
 
-		if global.characters >= 4
+		if MISC.player1.character >= 4
 			{
-				//key = getCharacterEndPoseSpriteKey(global.characters, true)
+				//key = getCharacterEndPoseSpriteKey(MISC.player1.character, true)
 				//if you don't want super sprites, you can technically just ignore the SuperActive variable in your version of the getCharacterEndPoseSpriteKey function
 
 				if (objA0.animation.sprite == 0x02) //super
 				{
-					key = getCharacterEndPoseSpriteKey(global.characters, true)
+					key = getCharacterEndPoseSpriteKey(MISC.player1.character, true)
 				}
 				else // if (objA0.animation.sprite <= 0x01) //not super
 				{
-					key = getCharacterEndPoseSpriteKey(global.characters, false)
+					key = getCharacterEndPoseSpriteKey(MISC.player1.character, false)
 				}
 
 				//make sure to edit base function for getCharacterEndPoseSpriteKey() to include your custom sprites. should add example function for ease of use
@@ -439,9 +478,9 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		if (Renderer.hasCustomSprite(key))
 		{
 			// Check if there's also a custom palette
-			string paletteKey = getCharacterEndPosePaletteKey(global.characters)
+			string paletteKey = getCharacterEndPosePaletteKey(MISC.player1.character)
 			//same thing here if there's a custom palette for the endpose. otherwise, you can just do what amy galore did, and default to the base pal.
-			if (System.hasExternalPaletteData(paletteKey, MISC.getEndposePaletteLine(global.characters)))
+			if (System.hasExternalPaletteData(paletteKey, MISC.getEndposePaletteLine(MISC.player1.character)))
 			{
 				atex = 0x40 + getMainCharacter() * 0x20
 			}
@@ -456,11 +495,11 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	if (objA0.update_address == 0x05d86a)
 	{
 		//if flying left use the micro character
-		if (char.render_flags & 0x01) && global.characters > 3
+		if (char.render_flags & 0x01) && MISC.player1.character > 3
 		{
 			u8 flags = prioFlag ? SPRITE_FLAG_PRIO : 0x00
 			u8 flags2 = ((objA0.render_flags & 0x01) ? SPRITE_FLAG_FLIP_X : 0) | ((objA0.render_flags & 0x02) ? SPRITE_FLAG_FLIP_Y : 0) | ((objA0.sprite_attributes & 0x8000) ? SPRITE_FLAG_PRIO : 0)
-			u64 key = MISC.getMiniChar(global.characters) //use global.characters when in-game
+			u64 key = MISC.getMiniChar(MISC.player1.character) //use MISC.player1.character when in-game
 
 			if (Renderer.hasCustomSprite(key))
 			{
@@ -477,7 +516,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		}
 	}
 	// Character sprites for riding the Tornado in the ending
-	if (objA0.update_address == 0x05ebb4 || objA0.update_address == 0x05ed18) && global.characters > 3
+	if (objA0.update_address == 0x05ebb4 || objA0.update_address == 0x05ed18) && MISC.player1.character > 3
 	{
 		string key = 0
 		u8 atex = 0
@@ -532,7 +571,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 
 	//this is only if you want a custom pilot (not sonic tails or knux) in the big & small variants, mini variants have a whole different thing.
 	// Character sprites for riding the Tornado in the ending
-	//if (objA0.update_address == 0x05ebb4 || objA0.update_address == 0x05ed18) && global.characters >= 4
+	//if (objA0.update_address == 0x05ebb4 || objA0.update_address == 0x05ed18) && MISC.player1.character >= 4
 	//{
 	//	u64 key = 0
 	//	u8 atex = 0
@@ -559,7 +598,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	// - Characters on the Best ending:
 	if ((objA0.update_address == 0x05f376 || objA0.update_address == 0x05f39e) && objA0.subtype2c == 0x06)
 	{
-		u8 character = global.characters
+		u8 character = MISC.player1.character
 		u8 atex = 0x40 + character * 0x20
 		u64 key
 		u8 AnimEnd = (objA0.animation.sprite >= 0x03)
@@ -570,7 +609,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		return true
 	}
 	
-	if (global.game_mode == 0x14) && global.characters >= 4
+	if (global.game_mode == 0x14) && MISC.player1.character >= 4
 	{
 		u8 flags = prioFlag ? SPRITE_FLAG_PRIO : 0x00
 		// Continue Icons
@@ -586,7 +625,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 				}
 		}
 
-		if MISC.GetPartner(global.characters + 1) == 0xff
+		if MISC.GetPartner(MISC.player1.character + 1) == 0xff
 		{
 			if (objA0.update_address == 0x05c660 || objA0.update_address == 0x05c838)
 			{
@@ -598,7 +637,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 					key = MISC.GetCharSpriteKey(objA0.animation.sprite)
 				if (Renderer.hasCustomSprite(key))
 				{
-				Renderer.drawCustomSprite(key, px, py, atex, flags, renderQueue)
+				Renderer.drawCustomSprite(key, px, py + char.hitbox.y.UPRIGHT - MISC.GetPlayerHeight(MISC.player1.character), atex, flags, renderQueue)
 				return true
 				}
 				
@@ -606,43 +645,153 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		}
 		else
 		{
-			if (objA0.update_address == 0x05c55c || objA0.update_address == 0x05c588 || objA0.update_address == 0x05c74a)
+			if (objA0.update_address == 0x05c55c || objA0.update_address == 0x05c588)
 			{
-				bool isPlayer1 = (objA0.update_address == 0x05c55c || (objA0.update_address == 0x05c588 && !MISC.HaveCharacterTurnAround(global.characters))) ? true : false
-				u8 atex = 0x40 + !isPlayer1 * 0x20
+				bool isPlayer1 = (objA0.update_address == 0x05c55c || (objA0.update_address == 0x05c588 && !MISC.HaveCharacterTurnAround(MISC.player1.character))) ? true : false
+				u8 atex = 0x40 + (MISC.getCharBase(MISC.player1.character) * 0x20)
 				u64 key
-				if isPlayer1
+				
+				if isPlayer1 && !(objA0.animation.sprite >= 0x21 && objA0.animation.sprite <= 0x24)
 				{
-					key = MISC.getPartnerContinueSprites(global.characters)
-					if !(Renderer.hasCustomSprite(key))
+					if MISC.useUniquePartnerContinueAnimation(MISC.player1.character)
 					{
-						if (objA0.animation.sprite >= 0 && objA0.animation.sprite <= 1) // used when tails is with you in the screen
-							key = MISC.GetCharSpriteKey(0x5a)
-						else
-							key = MISC.GetCharSpriteKey(objA0.animation.sprite)
+						key = MISC.getPartnerContinueSprites(MISC.player1.character)
+						if !(Renderer.hasCustomSprite(key))
+						{
+							if (objA0.animation.sprite >= 0 && objA0.animation.sprite <= 1) // used when tails is with you in the screen
+								key = MISC.GetCharSpriteKey(0x5a)
+							else
+								key = MISC.GetCharSpriteKey(objA0.animation.sprite)
+						}
+					}
+					else
+					{
+						key = MISC.GetCharSpriteKey(0x5a)
+						if !(Renderer.hasCustomSprite(key))
+						{
+							if (objA0.animation.sprite >= 0 && objA0.animation.sprite <= 1) // used when tails is with you in the screen
+								key = MISC.GetCharSpriteKey(0x5a)
+							else
+								key = MISC.GetCharSpriteKey(objA0.animation.sprite)
+						}
 					}
 				}
 				else
+					key = MISC.GetCharSpriteKey(objA0.animation.sprite)
+					
+				if objA0.animation.sprite == 0x57 || objA0.animation.sprite == 0x56 //standing sprite
 				{
-					key = MISC.getContinueSpritesP2(objA0.animation.sprite-5)
+					u8 char = MISC.getCharBase(MISC.player1.character)
+					u8 standframe = (char == CHARACTER_SONIC) ? 0xba : (char == CHARACTER_TAILS) ? 0xad : 0x56
+					key = MISC.GetCharSpriteKey(standframe)
+					
+					
+					if MISC.useTailsTails(MISC.player1.character)
+					{
+						//tails' tails
+						u8 atex2 = 0x40 + (isMainCharacter(CHARACTER_TAILS) ? 0x00 : 0x20)
+					
+						u64 key2 = MISC.getTailSpriteKey(0x22 + ((global.framecounter/8) % 4), MISC.player2.character)
+						if (!Renderer.hasCustomSprite(key2))
+						{
+							key2 = Renderer.setupCustomCharacterSprite(0x336620, 0x344d74, 0x344bb8, 0x22 + ((global.framecounter/8) % 4), 0x00)
+						}
+						Renderer.drawCustomSprite(key2, px, py + char.hitbox.y.UPRIGHT - MISC.GetPlayerHeight(MISC.player1.character), atex2, flags, renderQueue)
+					}
 				}
 				
 				if (Renderer.hasCustomSprite(key))
 				{
-					Renderer.drawCustomSprite(key, px, py, atex, flags, renderQueue+10)
+					s8 offset = char.hitbox.y.UPRIGHT - MISC.GetPlayerHeight(MISC.player1.character)
+					Renderer.drawCustomSprite(key, px, py + offset, atex, flags, renderQueue+10)
 					return true
 				}
+			}
+			
+			// Main Tails sprites
+			if (objA0.update_address == 0x05c74a || objA0.update_address == 0x05c790)
+			{
+				u64 key = MISC.GetCharSpriteKey(objA0.animation.sprite, MISC.player2.character)
+				if objA0.animation.sprite == 0xad
+				{
+					u8 char = MISC.getCharBase(MISC.player2.character)
+					u8 standframe = (char == CHARACTER_SONIC) ? 0xba : (char == CHARACTER_TAILS) ? 0xad : 0x56
+					key = MISC.GetCharSpriteKey(standframe, MISC.player2.character)
+				}
+				
+				if objA0.update_address == 0x05c74a
+				{				
+					key = MISC.getContinueSpritesP2(objA0.animation.sprite-5)
+					if objA0.animation.sprite > 0x06 //not in the continue stance
+						key = MISC.GetCharSpriteKey(objA0.animation.sprite, MISC.player2.character)
+				}
+					
+				u8 atex = 0x40 + (isMainCharacter(CHARACTER_TAILS) ? 0x00 : 0x20)
+				
+				if (Renderer.hasCustomSprite(key))
+				{
+					s8 offset = char.hitbox.y.UPRIGHT_TAILS - MISC.GetPlayerHeight(MISC.player2.character)
+					if objA0.update_address == 0x05c74a
+						offset += 4
+					Renderer.drawCustomSprite(key, px, py + offset, atex, flags, renderQueue+10)
+					return true
+				}
+			}
+			
+			if (objA0.update_address == 0x0160d2) && MISC.player2.character > 3
+			{
+				if MISC.useTailsTails(MISC.player2.character)
+				{
+				
+					u8 atex = 0x40 + (isMainCharacter(CHARACTER_TAILS) ? 0x00 : 0x20)
+				
+					u64 key = MISC.getTailSpriteKey(objA0.animation.sprite, MISC.player2.character)
+
+					if (!Renderer.hasCustomSprite(key))
+					{
+						key = Renderer.setupCustomCharacterSprite(0x336620, 0x344d74, 0x344bb8, objA0.animation.sprite, 0x00)
+						Renderer.drawCustomSprite(key, px, py + char.hitbox.y.UPRIGHT_TAILS - MISC.GetPlayerHeight(MISC.player2.character), atex, flags, renderQueue)
+					}
+				}
+				return true
 			}
 		}
 	}
 	
-return base.Standalone.onWriteToSpriteTable(px, py, renderQueue)
+	return base.Standalone.onWriteToSpriteTable(px, py, renderQueue)
+}
+
+function void MISC.handleBonusIcon(s16 px, s16 py, u16 renderQueue)
+{
+	string key = MISC.getBonusIcon()
+	if (Renderer.hasCustomSprite(key))
+		Renderer.drawCustomSprite(key, px, py, 0x40 + MISC.getCharBase(MISC.player1.character) * 0x20, SPRITE_FLAG_PRIO, renderQueue-1)
+}
+
+//# address-hook(0x02df64) end(0x02e2be)
+function void fn02df64()
+{
+	if MISC.player1.character < 4
+	{
+		base.fn02df64()
+		return
+	}
+
+	//load all normal palettes, for continues and bonus icons
+	loadCharacterPalette(CHARACTER_SONIC,    0x802180, 0)
+	loadCharacterPalette(CHARACTER_SONIC,    0x802000, 0)
+	loadCharacterPalette(CHARACTER_TAILS,    0x802180 + 0x40, 0)
+	loadCharacterPalette(CHARACTER_TAILS,    0x802000 + 0x40, 0)
+	loadCharacterPalette(CHARACTER_KNUCKLES,    0x802180 + 0x80, 0)
+	loadCharacterPalette(CHARACTER_KNUCKLES,    0x802000 + 0x80, 0)
+	
+	base.fn02df64()
 }
 
 //# address-hook(0x05eb32) end(0x05eb66)
 function void fn05eb32() //set the character in the tornado for custom characters (it can be whoever you want)
 {
-	if (global.characters < 4) //if you want another character except for tails as the pilot, you can change the parameters to just be if global.characters is NOT your slot number.
+	if (MISC.player1.character < 4) //if you want another character except for tails as the pilot, you can change the parameters to just be if MISC.player1.character is NOT your slot number.
 	{
 		base.fn05eb32()
 		return
@@ -661,9 +810,9 @@ function void fn05eb32() //set the character in the tornado for custom character
 
     // Select character in Tornado by custom char number
     // you can only select between Tails, sonic, and knuckles' sonic variant. if you want to add a custom pilot, look at Standalone.onWriteToSpriteTable().
-    if (global.characters > 3)
+    if (MISC.player1.character > 3)
     {
-        MISC.getPilot(global.characters) //you can set your own parameters in this function
+        MISC.getPilot(MISC.player1.character) //you can set your own parameters in this function
     }
 }
 
@@ -673,7 +822,7 @@ function void fn05eb32() //set the character in the tornado for custom character
 function void fn05ecb4()
 {
 	//this accounts for all slots
-	if global.characters < 4
+	if MISC.player1.character < 4
 		{
 			base.fn05ecb4()
 			return
@@ -691,7 +840,7 @@ function void fn05ecb4()
 	objA0.update_address = 0x05ed18
 	
 	//this is the only edited part
-	u16 offset = MISC.getSmallPilot(global.characters) //use this to set values in helperfunctions
+	u16 offset = MISC.getSmallPilot(MISC.player1.character) //use this to set values in helperfunctions
 	// 1 - tails
 	// 2 - sonic
 	// 3 - sonic (knuckles' version)
@@ -763,35 +912,35 @@ function void SetGlobalCharacters()
 		if MISC.GetStringFromSlot(dataselect.slot_selected) != 0
 			levelselect.characters = MISC.GetCharFromString(MISC.GetStringFromSlot(dataselect.slot_selected)) + 1
 		useKnucklesAndTails = (levelselect.characters == CHARS_KNUCKLES_AND_TAILS)
-		global.characters = (levelselect.characters < CHARS_KNUCKLES_AND_TAILS) ? levelselect.characters : levelselect.characters - 1
-		global.characters = min(global.characters, 254) //change this to 254 so that it supports values over 4. not 255 since knuckles & tails count as slot 3 still
+		MISC.player1.character = (levelselect.characters < CHARS_KNUCKLES_AND_TAILS) ? levelselect.characters : levelselect.characters - 1
+		MISC.player1.character = min(MISC.player1.character, 254) //change this to 254 so that it supports values over 4. not 255 since knuckles & tails count as slot 3 still
 		
 		MISC.SpawnSpecialPlayer()
 		MISC.SpawnSpecialPlayer2()
 		
 		MISC.setDiscordDetails()
 		
-		//global.characters values 4 and onwards aren't used by the base game
+		//MISC.player1.character values 4 and onwards aren't used by the base game
 	#endif
 	} //Rest of these are fallbacks
 	else if (global.zone == 0x07)	// MHZ
 	{
-		global.characters = CHARS_KNUCKLES_ALONE
+		MISC.player1.character = CHARS_KNUCKLES_ALONE
 	}
 	else if (global.lock_on_state == 0)
 	{
-		global.characters = CHARS_SONIC_AND_TAILS
+		MISC.player1.character = CHARS_SONIC_AND_TAILS
 	}
 	else
 	{
-		global.characters = CHARS_SONIC_ALONE
+		MISC.player1.character = CHARS_SONIC_ALONE
 	}
 }
 
 function void MISC.setDiscordDetails()
 {
-	string name = MISC.GetCharNameDiscordRPC(global.characters)
-	if (!name || global.characters < 4)
+	string name = MISC.GetCharNameDiscordRPC(MISC.player1.character)
+	if (!name || MISC.player1.character < 4)
 		return
 	string emeralds
 	if (global.chaos_emeralds == 0 && global.super_emeralds == 0)
@@ -819,14 +968,14 @@ function void MISC.setDiscordDetails()
 	else
 		emeralds = stringformat(" %s", emeralds)
 	string str = stringformat("%s%s", name, emeralds)
-	string icon = MISC.setDiscordSmallImage(global.characters)
+	string icon = MISC.setDiscordSmallImage(MISC.player1.character)
 	if (!icon) // triggering failsafe
 		icon = "character_unknown"
 	Game.setDiscordSmallImage(icon)
 	Game.setDiscordDetails(str)
 }
 
-//fix for tails not spawning in cnz and mhz. this just changes the parameters for spawning AI tails and returns base if not on either level, or global.characters is below a certain value.
+//fix for tails not spawning in cnz and mhz. this just changes the parameters for spawning AI tails and returns base if not on either level, or MISC.player1.character is below a certain value.
 //# address-hook(0x0067ee) end(0x0069b6)
 function void fn0067ee()
 {
@@ -834,7 +983,7 @@ function void fn0067ee()
 	u8 HasCustomZone = (customZoneSelect.canFindAlternateZoneInSet1(global.zone) && customZoneSelect.alternateZoneSet == 0 || customZoneSelect.canFindAlternateZoneInSet2(global.zone) && customZoneSelect.alternateZoneSet == 1)
 	#endif
 	
-	if global.characters <= 3 || SpawnAITails(global.characters) == false || MISC.getAllowedZones(global.characters) == 0x0b //you can also set your own parameters, for example if your character has a custom level intro, just make it return base if your slotnum is active
+	if MISC.player1.character <= 3 || SpawnAITails(MISC.player1.character) == false || MISC.getAllowedZones(MISC.player1.character) == 0x0b //you can also set your own parameters, for example if your character has a custom level intro, just make it return base if your slotnum is active
 	{
 		base.fn0067ee()
 		#if CZS_ACTIVE
@@ -894,7 +1043,7 @@ function void fn0067ee()
 //# address-hook(0x0838c2) end(0x08390c)
 function void fn0838c2()
 {
-	if (global.characters < 4) || u8[0xffffe654]
+	if (MISC.player1.character < 4) || u8[0xffffe654]
 	{
 		base.fn0838c2()
 		return
@@ -925,7 +1074,7 @@ function void fn0838c2()
 
 //Unedited function. Spawns the characters.
 
-//global.characters won't change, so you can use this to choose a base character like ES, but use global.characters as a check instead of global.xtrachar
+//MISC.player1.character won't change, so you can use this to choose a base character like ES, but use MISC.player1.character as a check instead of global.xtrachar
 
 //# address-hook(0x006a76) end(0x006bd6)
 function void InitializeGameCharacters()
@@ -936,7 +1085,7 @@ function void InitializeGameCharacters()
 		return
 	}
 	
-	MISC.setPlayer(1, global.characters)
+	MISC.setPlayer(1, MISC.player1.character)
 
 	// One of the bonus stages?
 	if (global.zone_act >= 0x1300 && global.zone_act < 0x1600)
@@ -1305,7 +1454,7 @@ function bool Standalone.onDrawVdpSpriteCompound(s16 px, s16 py, u8 size, u16 in
 //# address-hook(0x05f26c) end(0x05f2dc)
 function void fn05f26c() //add the new character. to my knowledge, no way to base this, so.
 {
-	if u8[0xffffe654] || global.characters < 4
+	if u8[0xffffe654] || MISC.player1.character < 4
 	{
 		base.fn05f26c()
 		return
@@ -1352,7 +1501,7 @@ function void fn05f26c() //add the new character. to my knowledge, no way to bas
 //# address-hook(0x05fefe) end(0x05ff1a)
 function void fn05fefe()
 {
-	if global.characters < 4
+	if MISC.player1.character < 4
 	{
 		base.fn05fefe()
 		return
@@ -1367,7 +1516,7 @@ function void fn05fefe()
 //# address-hook(0x05b42a) end(0x05b470)
 function void fn05b42a()
 {
-	if global.characters < 4
+	if MISC.player1.character < 4
 	{
 		base.fn05b42a()
 		return
@@ -1399,7 +1548,7 @@ function void fn05b42a()
 //# address-hook(0x05fd88) end(0x05fd9a)
 function void fn05fd88()
 {
-	if global.characters < 4
+	if MISC.player1.character < 4
 	{
 		base.fn05fd88()
 		return
@@ -1413,7 +1562,7 @@ function void fn05fd88()
 //# address-hook(0x05ef68) end(0x05efb4)
 function void fn05ef68()
 {
-	if global.characters < 4
+	if MISC.player1.character < 4
 	{
 		base.fn05ef68()
 		return
@@ -1468,7 +1617,7 @@ function void FadeOutColorUniform()
 //# address-hook(0x05c2e0) end(0x05c4d4)
 function void fn05c2e0()
 {
-	if global.characters < 4
+	if MISC.player1.character < 4
 	{
 		base.fn05c2e0()
 		return
@@ -1515,7 +1664,7 @@ function void fn05c2e0()
 
 	if (!isMainCharacter(CHARACTER_KNUCKLES))
 	{
-		if (MISC.GetPartner(global.characters + 1) == 0xff) || getMainCharacter() == CHARACTER_TAILS
+		if (MISC.GetPartner(MISC.player1.character + 1) == 0xff) || getMainCharacter() == CHARACTER_TAILS
 		{
 			u32[0xffffb000] = 0x05c660	// Sonic Alone in continue screen
 		}
@@ -1546,6 +1695,36 @@ function void fn05c2e0()
 	loadCharacterPalette(CHARACTER_SONIC,    0x802180, 0)
 	loadCharacterPalette(CHARACTER_TAILS,    0x8021c0, 0)
 	loadCharacterPalette(CHARACTER_KNUCKLES, 0x802200, 0)
+	
+	//swap addresses if tails base
+	
+	string paletteKey = getCharacterPaletteKey(MISC.player1.character)
+	u16 numColors = System.loadExternalPaletteData(paletteKey, 0, 0x800000, 0x20)
+	if (numColors > 0)
+	{
+		u32 dest = 0x802180 + (MISC.getCharBase(MISC.player1.character) * 0x40)
+		for (u16 i = 0; i < numColors; ++i)
+		{
+			if u16[dest + i * 2] != packColor(u32[0x800000 + i * 4])
+				u16[dest + i * 2] = packColor(u32[0x800000 + i * 4])
+		}
+	}
+	
+	if MISC.player2.character > 3
+	{
+		string paletteKey2 = getCharacterPaletteKey(MISC.player2.character)
+		u16 numColors2 = System.loadExternalPaletteData(paletteKey2, 0, 0x800000, 0x20)
+		if (numColors2 > 0)
+		{
+			u32 dest = 0x802180 + (isMainCharacter(CHARACTER_TAILS) ? 0x00 : 0x40)
+			for (u16 i = 0; i < numColors2; ++i)
+			{
+				if u16[dest + i * 2] != packColor(u32[0x800000 + i * 4])
+					u16[dest + i * 2] = packColor(u32[0x800000 + i * 4])
+			}
+		}
+	}
+	
 #endif
 	playMusic(MUSIC_CONTINUE)
 	Menu.FadeInAfterInit()
@@ -1594,17 +1773,17 @@ function void fn05c2e0()
 function void fn05f31c()
 {
 	base.fn05f31c()
-	if (global.characters <= CHARACTER_KNUCKLES)
+	if (MISC.player1.character <= CHARACTER_KNUCKLES)
 		return
 	MISC.loadEndScreenPalette()
 }
 
 function bool DEZFinalBoss3.canPlayerEnterDoomsday()
 {
-	if global.characters < 4
+	if MISC.player1.character < 4
 		return base.DEZFinalBoss3.canPlayerEnterDoomsday()
 
-	if MISC.getAllowedZones(global.characters) == 0x0d && global.chaos_emeralds == 7
+	if MISC.getAllowedZones(MISC.player1.character) == 0x0d && global.chaos_emeralds == 7
 		return true
 	else
 		return false
@@ -1613,7 +1792,7 @@ function bool DEZFinalBoss3.canPlayerEnterDoomsday()
 //# address-hook(0x00c434) end(0x00c4d0)
 function void SaveGameOnLevelFinished()
 {
-	if global.characters < 4
+	if MISC.player1.character < 4
 	{
 		base.SaveGameOnLevelFinished()
 		return
@@ -1647,7 +1826,7 @@ function void SaveGameOnLevelFinished()
 		{
 			u8[A1 + 0x03] = nextZone
 
-			gameCompleted = (nextZone >= MISC.getAllowedZones(global.characters))
+			gameCompleted = (nextZone >= MISC.getAllowedZones(MISC.player1.character))
 
 			if (gameCompleted)
 			{
@@ -1686,7 +1865,7 @@ function u8 ExtraChar.getHighestSlot()
 
 function void loadCharacterPalette(u8 character, u32 targetAddress, u8 paletteVariant)
 {
-	if (global.characters > CHARACTER_KNUCKLES && global.zone_act == 0x0d01 && u8[0xffffe654] == 0)
+	if (MISC.player1.character > CHARACTER_KNUCKLES && global.zone_act == 0x0d01 && u8[0xffffe654] == 0)
 	{
 		global.zone_act = 0
 		base.loadCharacterPalette(character, targetAddress, paletteVariant)
@@ -1698,7 +1877,7 @@ function void loadCharacterPalette(u8 character, u32 targetAddress, u8 paletteVa
 
 function void ExtraChar.loadCharacterPaletteOfAvailableExtraChars()
 {
-	if (global.characters > CHARACTER_KNUCKLES && u8[0xffffe654] == 0)
+	if (MISC.player1.character > CHARACTER_KNUCKLES && u8[0xffffe654] == 0)
 		return
 	base.ExtraChar.loadCharacterPaletteOfAvailableExtraChars()
 }
@@ -1897,7 +2076,7 @@ function void Standalone.onLevelStart()
 
 function bool disableOriginsIntrosContent()
 {
-    if (global.characters > 3)
+    if (MISC.player1.character > 3)
         return true
     else
         return base.disableOriginsIntrosContent()
@@ -1905,14 +2084,14 @@ function bool disableOriginsIntrosContent()
 
 function string getCharacterEndPosePaletteKey(u8 character)
 {
-	if global.characters >= 4
-		return getMISCPaletteKey(global.characters)
+	if MISC.player1.character >= 4
+		return getMISCPaletteKey(MISC.player1.character)
 	return base.getCharacterEndPosePaletteKey(character)
 }
 
 function void loadCharacterEndPosePalette(u8 character, u32 targetAddress, u8 paletteVariant)
 {
-	if ((global.characters < 4))
+	if ((MISC.player1.character < 4))
 	{
 		base.loadCharacterEndPosePalette(character, targetAddress, paletteVariant)
 		return
@@ -1928,7 +2107,7 @@ function void loadCharacterEndPosePalette(u8 character, u32 targetAddress, u8 pa
 //# address-hook(0x07b2dc) end(0x07b3a6)
 function void fn07b2dc()
 {
-	if (global.characters >= 4 && global.act == 0)
+	if (MISC.player1.character >= 4 && global.act == 0)
 		u16[0xfffffa9a] = 0
 	base.fn07b2dc()
 }

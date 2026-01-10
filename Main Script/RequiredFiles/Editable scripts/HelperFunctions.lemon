@@ -1,10 +1,18 @@
 // Unedited base game functions that should be changed in order to properly load your character.
 
-define MISC.player1.character		= u16[0xffffff08] //literally exactly the same as global.characters, renamed for consistency
+#if !MISC_ACTIVE
+define MISC.player1.character		= u16[0xffffff08] //literally exactly the same as MISC.player1.character, renamed for consistency
 define MISC.player2.character		= u16[0xffffff0c] //used to determine the 2nd player character. (USED IN THE CUSTOM PLAYER 2 ADDON)
+#endif
 
 //to define a character, create a global variable as shown here. make sure it's set to zero!
 global u8 CHARACTER_CUSTOM = 0
+
+//during this script, various methods will be used to check characters.
+//keep in mind that some of these functions are from the base game, and use base game input values.
+//however, generally... if the helper function uses "character", it accounts for your character as both p1 AND p2.
+//if the helper function uses "MISC.player1.character", and vice versa for p2, it's only for that player GLOBALLY.
+//if the helper function uses "slotnum" or something else, it's using the character while MISC.player1.character is not set.
 
 //check for your character by using slotnum == CHARACTER_CUSTOM (or whatever your character is defined as!)
 function bool MISC.SetCharAsValid(u8 slotnum) //Determine what values are valid
@@ -31,7 +39,7 @@ function bool TagTeam.SetMISCAsValid(u8 slot)
         return false
 }
 
-// Sets your character to valid for Blue Sphere (not relevant to special stages)
+// Sets your character to valid for Blue Sphere in the EXTRAS menu. (not relevant to special stages)
 function bool MISC.SetBluSphereCharAsValid(u8 slotnum) //Determine what values are valid
 {
 	bool base = base.MISC.SetBluSphereCharAsValid(slotnum)
@@ -110,7 +118,7 @@ function u8 MISC.GetPartner(u8 character)
 function string getCharacterLivesIcon(u8 character)
 {
 	// example, change to your own slot
-	if global.characters == CHARACTER_CUSTOM
+	if MISC.player1.character == CHARACTER_CUSTOM
 		return "hud_lives_icon_custom"
 	return base.getCharacterLivesIcon(character)
 }
@@ -120,7 +128,7 @@ function string getCharacterContinueIcon(u8 character)
 {
 	// example, change to your own slot
 	// Special handling for active extra character
-	if global.characters == CHARACTER_CUSTOM
+	if character == CHARACTER_CUSTOM
 		return "continue_icon_custom"
 	
 	 // Call the base function
@@ -132,7 +140,7 @@ function string getCharacterContinueIcon(u8 character)
 function string getCharacterResultsNameplate(u8 character)
 {
 	// example, change to your own slot
-	if global.characters == CHARACTER_CUSTOM
+	if MISC.player1.character == CHARACTER_CUSTOM
 		return "result_nameplate_custom"
 	return base.getCharacterResultsNameplate(character)
 }
@@ -221,7 +229,7 @@ function string getCharacterBluespherePaletteKey(u8 character)
 // Animated continue icons for continue screen (for how many continues you have left)
 function string MISC.getContinueIcons(u8 frame) //frames go between 0 and 1
 {
-	if (global.characters == CHARACTER_CUSTOM)
+	if (MISC.player1.character == CHARACTER_CUSTOM)
 	{
 		return stringformat("continue_icon_charcustom_%d", frame)
 	}
@@ -231,7 +239,7 @@ function string MISC.getContinueIcons(u8 frame) //frames go between 0 and 1
 // Character sprites for their continue animations
 function string MISC.getContinueSprites(u8 frame) //frames go between 0 and 1
 {
-	if (global.characters == CHARACTER_CUSTOM)
+	if (MISC.player1.character == CHARACTER_CUSTOM)
 	{
 		return stringformat("character_charcustom_continue_%d", frame)
 	}
@@ -243,7 +251,7 @@ function string MISC.getContinueSprites(u8 frame) //frames go between 0 and 1
 // GetCharSpriteKey functions to be used in tandem with stuff in RenderChar.lemon
 function string MISC.GetCharSpriteKey(u8 animationSprite)
 {
-	return MISC.GetCharSpriteKey(animationSprite, global.characters)
+	return MISC.GetCharSpriteKey(animationSprite, MISC.player1.character)
 }
 
 function string MISC.GetCharSpriteKey(u8 animationSprite, u8 character)
@@ -570,7 +578,7 @@ function void MISC.DrawS3CIcon()
 // Determines sprite keys for your character in the best ending (shows up alongside the base 3 characters by default)
 function string MISC.getEndLogoSprites(u8 animation)
 {
-	if (global.characters != CHARACTER_CUSTOM) // Your character here
+	if (MISC.player1.character != CHARACTER_CUSTOM) // Your character here
 		return base.MISC.getEndLogoSprites(animation)
 	
 	return stringformat("endlogo_custom_0x%02x", animation) // Replace custom with your slot
@@ -581,7 +589,7 @@ function string MISC.getEndLogoSprites(u8 animation)
 // Changes monitor icons for your character
 function u64 Monitor.getIconSpriteKey(u8 type)
 {
-	if (global.characters != CHARACTER_CUSTOM)
+	if (MISC.player1.character != CHARACTER_CUSTOM)
 		return base.Monitor.getIconSpriteKey(type)
 		
 	// Any of these can be removed to run through other mods for sprite keys
@@ -612,11 +620,11 @@ function u64 Monitor.getIconSpriteKey(u8 type)
 }
 
 // Changes the little fire icon at the end of every line of the score tally for your character
-function string getCharacterBonusTextIcon(u8 character)
+function string MISC.getBonusIcon()
 {
-	if (global.characters == CHARACTER_CUSTOM)
+	if (MISC.player1.character == CHARACTER_CUSTOM)
 		return "hud_bonus_icon_char_custom"
-	return base.getCharacterBonusTextIcon(character)
+	return base.MISC.getBonusIcon()
 }
 
 // In order to use the hitbox functions below, change the player height in the MISC.GetPlayerHeight() function, and refer to AdvancedFunctions.lemon for more info if you want to edit more stuff.
@@ -647,7 +655,7 @@ function void MISC.SetCharHitbox(u8 player)
 		
 		if char.hitbox_extends.x != char.hitbox.x.ROLLING
 		{
-			if (global.zone_act == 0x0300) && checkpoint.number == 0 && SpawnAITails(global.characters) // fix for cnz
+			if (global.zone_act == 0x0300) && checkpoint.number == 0 && SpawnAITails(MISC.player1.character) // fix for cnz
 				char.hitbox_extends.y = char.hitbox.y.UPRIGHT
 			else
 				char.hitbox_extends.y = characterHeight

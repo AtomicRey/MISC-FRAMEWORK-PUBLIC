@@ -7,9 +7,9 @@
 
 function void MISC.SpawnSpecialPlayer()
 {
-	if global.characters == CHARACTER_CUSTOM //prevent looping by putting if statement here
+	if MISC.player1.character == CHARACTER_CUSTOM //prevent looping by putting if statement here
 	{
-		//you can basically force another global.characters value here.
+		//you can basically force another MISC.player1.character value here.
 		
 		return
 	}
@@ -21,7 +21,7 @@ function void MISC.SpawnSpecialPlayer()
 //Don't actually use this function unless you have the Special Player 2s addon.
 function bool MISC.SpawnSpecialPlayer2()
 {
-	if global.characters == CHARACTER_CUSTOM
+	if MISC.player1.character == CHARACTER_CUSTOM
 	{
 		return false
 	}
@@ -70,7 +70,7 @@ function bool MISC.getCharacter(u8 player, u8 character)
 
 	if player == 1
 	{
-		if global.characters == character
+		if MISC.player1.character == character
 			return true
 	}
 	else
@@ -105,7 +105,7 @@ function bool MISC.isCharacter(u32 address, u8 character)
 
 	if A0 == 0xffffb000
 	{
-		if global.characters == character
+		if MISC.player1.character == character
 		{
 			A0 = A0backup
 			return true

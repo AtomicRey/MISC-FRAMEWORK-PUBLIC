@@ -3,7 +3,7 @@
 
 function void MISC.SpawnSpecialPlayer()
 {
-	if global.characters == CHARACTER_CUSTOM //prevent looping by putting if statement here
+	if MISC.player1.character == CHARACTER_CUSTOM //prevent looping by putting if statement here
 	{
 		
 		return
@@ -16,7 +16,7 @@ function bool MISC.SpawnSpecialPlayer2()
 {
 	MISC.player2.character = CHARACTER_TAILS
 
-	if global.characters == CHARACTER_CUSTOM
+	if MISC.player1.character == CHARACTER_CUSTOM
 	{
 		u32[0xffffb04a] = addressof(Character.BaseUpdate.MISCPartner)
 		u16[0xffffb04a + 0x10] = u16[0xffffb000 + 0x10] - 0x20
@@ -71,7 +71,7 @@ function bool MISC.getCharacter(u8 player, u8 character)
 
 	if player == 1
 	{
-		if global.characters == character
+		if MISC.player1.character == character
 			return true
 	}
 	else
@@ -106,7 +106,7 @@ function bool MISC.isCharacter(u32 address, u8 character)
 
 	if A0 == 0xffffb000
 	{
-		if global.characters == character
+		if MISC.player1.character == character
 		{
 			A0 = A0backup
 			return true
@@ -264,7 +264,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	bool prioFlag = (objA0.sprite_attributes & sprite_attribute.PRIORITY) != 0
 	
 	// Characters in special stage
-	if (objA0.update_address == 0x00927a) && MISC.player2.character == CHARACTER_PARTNER && global.characters == CHARACTER_CUSTOM
+	if (objA0.update_address == 0x00927a) && MISC.player2.character == CHARACTER_PARTNER && MISC.player1.character == CHARACTER_CUSTOM
 	{
 		//This just uses the base MISC character's sprite key.
 	
@@ -310,7 +310,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	}
 	
 	// Tails' tails object in special stage
-	if (objA0.update_address == 0x009488) && MISC.player2.character == CHARACTER_PARTNER && global.characters == CHARACTER_CUSTOM
+	if (objA0.update_address == 0x009488) && MISC.player2.character == CHARACTER_PARTNER && MISC.player1.character == CHARACTER_CUSTOM
 	{
 		//Either change it or just do nothing and just return true. if your character HAS tails' tails for... some reason?? you can just remove this.
 		return true
@@ -470,7 +470,7 @@ function void Character.TailsAI.Init()
             tails.ai_routine = 0x06
             return
         }
-		else if ((global.zone_act == 0x0300) || (global.zone_act == 0x0700 && global.lock_on_state == 0)) && !SpawnAITails(global.characters)		// CNZ 1
+		else if ((global.zone_act == 0x0300) || (global.zone_act == 0x0700 && global.lock_on_state == 0)) && !SpawnAITails(MISC.player1.character)		// CNZ 1
 		{
 			char.state = (global.zone_act == 0x0700) ? char.state.GOT_HURT_PANIC : char.state.RUNNING
 			char.velocity.x = 0
@@ -733,7 +733,7 @@ function void copyPaletteDataFromTable(u8 index, u16 ramAddress)
 {
 	base.copyPaletteDataFromTable(index, ramAddress)
 	
-	if global.characters != CHARACTER_CUSTOM
+	if MISC.player1.character != CHARACTER_CUSTOM
 		return
 	
 	u32 dest += ramAddress - 0xfc00				// With this, dest can be changed to non-faded palette and/or secondary palette
@@ -815,7 +815,7 @@ function void DebugMode.EvaluateInput()
 function void copyMemory(u32 destAddress, u32 sourceAddress, u32 bytes)
 {
 	base.copyMemory(destAddress, sourceAddress, bytes)
-	if sourceAddress == 0x00896e && global.characters == CHARACTER_CUSTOM && MISC.getCharBase(MISC.player2.character) == CHARACTER_KNUCKLES
+	if sourceAddress == 0x00896e && MISC.player1.character == CHARACTER_CUSTOM && MISC.getCharBase(MISC.player2.character) == CHARACTER_KNUCKLES
 	{
 		base.copyMemory(0xfffffc90, 0x0089ee, 0x10)
 	}
@@ -1184,7 +1184,7 @@ function void Character.CheckForStartRolling()
 
 function bool isSonicIntro()
 {
-	if (global.characters == CHARACTER_CUSTOM)
+	if (MISC.player1.character == CHARACTER_CUSTOM)
 		return false
 	return base.isSonicIntro()
 }
@@ -1192,7 +1192,7 @@ function bool isSonicIntro()
 //# address-hook(0x01c46e) end(0x01c4ce)
 function void fn01c46e()
 {
-    if !(global.characters == CHARACTER_CUSTOM)
+    if !(MISC.player1.character == CHARACTER_CUSTOM)
     {
         base.fn01c46e()
         return
@@ -1207,7 +1207,7 @@ function void fn01c46e()
 //# address-hook(0x01c4d0) end(0x01c54e)
 function void fn01c4d0()
 {
-    if !(global.characters == CHARACTER_CUSTOM)
+    if !(MISC.player1.character == CHARACTER_CUSTOM)
     {
         base.fn01c4d0()
         return
