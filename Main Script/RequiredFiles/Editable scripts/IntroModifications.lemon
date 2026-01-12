@@ -1,6 +1,6 @@
 
-//FOR SONIC BASE CHARACTERS
-//if your character isn't a sonic base, none of this matters, and you can just delete this script.
+// *只是给索克克基礎的角色使用*
+// 如果你的基礎角色不是索尼克，這腳本就完全沒用了，你可以直接把這檔案刪了。
 
 //if you want your character to have no intro, use this. otherwise, you can remove it.
 function bool isSonicIntro()
