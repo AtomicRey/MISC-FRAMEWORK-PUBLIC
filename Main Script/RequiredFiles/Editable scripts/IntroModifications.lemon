@@ -1,8 +1,8 @@
 
-// *只是给索克克基礎的角色使用*
-// 如果你的基礎角色不是索尼克，這腳本就完全沒用了，你可以直接把這檔案刪了。
+// *只是给索克克基础的角色使用*
+// 如果你的基础角色不是索尼克，这脚本就完全没用了，你可以直接把这档案删了。
 
-// 如果你希望你的角色沒有開場動畫的話就可以使用這個，不然就可以刪了。
+// 如果你希望你的角色没有开场动画的话就可以使用这个，不然就可以删了。
 function bool isSonicIntro()
 {
 	if MISC.player1.character != CHARACTER_CUSTOM || global.zone_act != 0x0000 || checkpoint.number != 0
@@ -10,7 +10,7 @@ function bool isSonicIntro()
 	return false
 }
  
-// 如上，如果你想角色沒有開場動畫的話才使用，否則就把下面刪了。
+// 如上，如果你想角色没有开场动画的话才使用，否则就把下面删了。
 //# address-hook(0x01c4d0) end(0x01c54e)
 function void fn01c4d0()
 {
@@ -41,14 +41,14 @@ function void fn01c4d0()
 	}
 }
 
-// 如果你的基礎角色是索尼克，而且想要他使用「龍捲風」號開場動畫，你就需要像這樣對那個物件做渲染掛鉤 (renderhook)：
+// 如果你的基础角色是索尼克，而且想要他使用「龙捲风」号开场动画，你就需要像这样对那个物件做渲染挂钩 (renderhook)：
 function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 {
-    // 這就是索尼克如何在過場動畫中被渲染。如果你的 MISC 模組有客製化開場動畫或者沒有開場動畫那就不太需要用了。
+    // 这就是索尼克如何在过场动画中被渲染。如果你的 MISC 模组有客製化开场动画或者没有开场动画那就不太需要用了。
     // Cutscene Sonic in intro
 	if (objA0.update_address == 0x067472 && MISC.player1.character == CHARACTER_CUSTOM)
 	{
-        // 用你的角色的渲染函數來取代 Standalone.drawCharacterSprite，例如 Galore.drawAmy()
+        // 用你的角色的渲染函数来取代 Standalone.drawCharacterSprite，例如 Galore.drawAmy()
 		MISC.player = MISC.player1.character
 		MISC.drawCHARACTER_CUSTOM(CHARACTER_CUSTOM, 0, px, py, false)
 		return true
@@ -56,4 +56,4 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	return base.Standalone.onWriteToSpriteTable(px, py, renderQueue)
 }
 
-// 以塔爾斯和納克魯斯為基礎的角色需要更深入的腳本改寫才能改變他們的開場動畫。這些將會包含在 CUSTOM INTROS 的插件中。
+// 以塔尔斯和纳克鲁斯为基础的角色需要更深入的脚本改写才能改变他们的开场动画。这些将会包含在 CUSTOM INTROS 的插件中。
