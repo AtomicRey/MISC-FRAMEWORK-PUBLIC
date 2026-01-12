@@ -2,15 +2,15 @@
 // *只是给索克克基礎的角色使用*
 // 如果你的基礎角色不是索尼克，這腳本就完全沒用了，你可以直接把這檔案刪了。
 
-//if you want your character to have no intro, use this. otherwise, you can remove it.
+// 如果你希望你的角色沒有開場動畫的話就可以使用這個，不然就可以刪了。
 function bool isSonicIntro()
 {
 	if MISC.player1.character != CHARACTER_CUSTOM || global.zone_act != 0x0000 || checkpoint.number != 0
 		return base.isSonicIntro()
 	return false
 }
-
-//again, only if you want your character to have no intro. remove otherwise 
+ 
+// 如上，如果你想角色沒有開場動畫的話才使用，否則就把下面刪了。
 //# address-hook(0x01c4d0) end(0x01c54e)
 function void fn01c4d0()
 {
@@ -22,7 +22,7 @@ function void fn01c4d0()
 
 	move_area.left = 0x1308
 #if STANDALONE
-	// Show a bit more to the left, that looks better in widescreen
+    // Show a bit more to the left, that looks better in widescreen
 	move_area.left = max(0x12e0, move_area.left - getScreenExtend())
 #endif
 
@@ -41,14 +41,14 @@ function void fn01c4d0()
 	}
 }
 
-//if your character is a sonic base, and you want them to have the tornado intro, you have to renderhook the object like this:
+// 如果你的基礎角色是索尼克，而且想要他使用「龍捲風」號開場動畫，你就需要像這樣對那個物件做渲染掛鉤 (renderhook)：
 function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 {
-	//this is how sonic is rendered in the cutscene. not necessarily necessary for MISC mods with custom intros, or no intro.
-	// Cutscene Sonic in intro
+    // 這就是索尼克如何在過場動畫中被渲染。如果你的 MISC 模組有客製化開場動畫或者沒有開場動畫那就不太需要用了。
+    // Cutscene Sonic in intro
 	if (objA0.update_address == 0x067472 && MISC.player1.character == CHARACTER_CUSTOM)
 	{
-		//in place of Standalone.drawCharacterSprite, instead put your character's draw function. e.g. Galore.drawAmy()
+        // 用你的角色的渲染函數來取代 Standalone.drawCharacterSprite，例如 Galore.drawAmy()
 		MISC.player = MISC.player1.character
 		MISC.drawCHARACTER_CUSTOM(CHARACTER_CUSTOM, 0, px, py, false)
 		return true
@@ -56,4 +56,4 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	return base.Standalone.onWriteToSpriteTable(px, py, renderQueue)
 }
 
-//Knuckles bases & tails bases require more intrusive code editing to change their intros. these will be covered in the CUSTOM INTROS addon.
+// 以塔爾斯和納克魯斯為基礎的角色需要更深入的腳本改寫才能改變他們的開場動畫。這些將會包含在 CUSTOM INTROS 的插件中。
