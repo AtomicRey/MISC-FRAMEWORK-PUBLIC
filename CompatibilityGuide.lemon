@@ -1,106 +1,106 @@
-// DO NOT INCLUDE THIS SCRIPT IN YOUR MOD
-// This is purely to explain specific functions needed for compatibility's sakes
+//  *不要把这个脚本加入到你的模组裏*
+// 这只是纯粹解释一些为了兼容性而设计的函数 (function)
 
-// For most cases, you can check for a MISC character by checking global characters.
-// global characters is also used for the base 4 characters, as so:
-//0 - Sonic
-//1 - Sonic & Tails
-//2 - Tails
-//3 - Knuckles
-//4 - Knuckles & Tails
-// this means MISC chars are global.characters > 4, AKA the first MISC character is at the value of 5
+// 在大多数情况下，你可以透过 global.characters 来检查 MISC 角色。
+// 原本游戏裏的四位角色也是用 global.characters，如下：
+//0 - 索尼克
+//1 - 索尼克和塔尔斯
+//2 - 塔尔斯
+//3 - 纳克鲁斯
+//4 - 纳克鲁斯和塔尔斯
+// 这意味着 MISC 角色就是 global.characters > 4，也代表第一个 MISC 角色的数值就是 5
 
 function void FuckassExample()
 {
-	if global.characters > 4 //apply ONLY to MISC characters
-	{
-		//do something
-	}
-	
-	// you can also do the same thing with MISC.player1.character and MISC.player2.character. 
-	// (ONLY WORKS IF MISC IS ACTIVE, OR IF YOU HAVE THE MISC PREPROCESSOR CHECK)
-	// Preprocessor meaning the code is surrounded by #if MISC_ACTIVE and an #endif
-	
-	// MISC.player1.character is the same as global.characters, so you can interchange the two.
-	if MISC.player1.character > 4
-	{
-		//do something
-	}
-	
-	// You can also call MISC.player2.character by it's address, u16[0xffffff0c]
-	if MISC.player2.character > 4
-	{
-		//do something
-	}
-	
-	// You can also do the same with MISC.player (only if MISC is active or MISC is defined)
-	// KEEP IN MIND this only works if there is a PLAYER OBJECT active IN-GAME, and only if the A0 matches the memory address (not update address) of the player.
-	if MISC.player > 4
-	{
-		//do something
-	}
-	
-	// You can also call MISC.player by it's defined memory, u8[A0 + 0x29], useful if you don't want to define the actual value in your code.
-	// This can be substituted for other RAM addresses, A1 for example is very common within 3AIR's code to refer to a player, so you would use u8[A1 + 0x29] instead
-	if u8[A0 + 0x29] > 4
-	{
-		//do something
-	}
-	
-	// You can do the same thing except substituting A0 for the set player 1 and player 2 A0 values, 0xffffb000 or 0xffffb04a respectively
-	if u8[0xffffb000 + 0x29] > 4
-	{
-		//do something
-	}
-	if u8[0xffffb04a + 0x29] > 4
-	{
-		//do something
-	}
+    if global.characters > 4 // *只*应用在 MISC 角色上
+    {
+        // 做一些东西
+    }
+    
+    // 你也可以用 MISC.player1.character 和 MISC.player2.character 做一样的事。
+    // （*只有在 MISC 运行或有 MISC 预处理器 (preprocessor) 的情况下才适用*）
+    // 预处理器的意思是代码被 #if MISC_ACTIVE 和 #endif 包围
+    
+    // MISC.player1.character 等同于 global.characters，所以两者可以交替使用。
+    if MISC.player1.character > 4
+    {
+        // 做一些东西
+    }
+    
+    // 你也可以直接呼叫 MISC.player2.character 的传址 (address)，也就是 u16[0xffffff0c]
+    if MISC.player2.character > 4
+    {
+        // 做一些东西
+    }
+    
+    // 你也可以用 MISC.player 做一样的事（只有在 MISC 运行或 MISC 被定义了的情况下才适用）
+    // *请记住*这只有在*游戏运行时有角色物件(character object)*而且 A0 等于角色的记忆体位址 (memory address)（而不是更新指标 (update address)）才会生效
+    if MISC.player > 4
+    {
+        // 做一些东西
+    }
+    
+    // 你也可以用 MISC.player 已定义的记忆体 u8[A0 + 0x29] 来呼叫它，在你不想在你的代码裏定义它的实际值时挺有用的。
+    // 你也可以用其他记忆体位址来取代 A0，举个例子，在 3AIR 的代码裏经常会用 A1 来指向玩家，在这情况下你可以用 u8[A1 + 0x29]
+    if u8[A0 + 0x29] > 4
+    {
+        // 做一些东西
+    }
+    
+    // 不过，你不能把玩家1和玩家2的 A0 数值（分别为 0xffffb000 和 0xffffb04a）直接取代 A0
+    if u8[0xffffb000 + 0x29] > 4
+    {
+        // 做一些东西
+    }
+    if u8[0xffffb04a + 0x29] > 4
+    {
+        // 做一些东西
+    }
 }
 
-// These functions get the character string based on an inputed id value, and an id based on an inputed string value, respectively.
-// you can use this to check for characters without getting the character's global variable.
-// This would be important for checking WHICH MISC character is in use rather than just if any are in use at all.
-// ...y'know, if you're trying to do make things complicated.
+// 以下的函数分别可以透过输入的 id 数值来得到角色的字串和透过输入角色的字串来得到 id 数值。
+// 你可以在不获得角色的全域变数 (global variable) 的情况下用这些函数检查角色。
+// 这基本上只会在检查*哪个* MISC 角色正在被使用时有用，而不是检查 MISC 的角色是否被使用。
+// ...那是，如果你想把事情複杂化的话。
 function string MISC.GetStringFromChar(u8 char)
 {
-	if char == CHARACTER_CUSTOM
-		return "CHARACTER_CUSTOM"
-	else
-		return base.MISC.GetStringFromChar(char)
+    if char == CHARACTER_CUSTOM
+        return "CHARACTER_CUSTOM"
+    else
+        return base.MISC.GetStringFromChar(char)
 }
 
 function u8 MISC.GetCharFromString(string char)
 {
-	if char == "CHARACTER_CUSTOM"
-		return CHARACTER_CUSTOM
-	else
-		return base.MISC.GetCharFromString(char)
+    if char == "CHARACTER_CUSTOM"
+        return CHARACTER_CUSTOM
+    else
+        return base.MISC.GetCharFromString(char)
 }
 
-//example usage: ONLY WORKS IF MISC CHARACTERS ARE BELOW
+// 示范例子：*只有当 MISC 角色在较低的优先级时才会生效* 
 function void FuckassExample2()
 {
-	//this only works if your mod has a higher priority than MISC.
-	//you can also define a blank version of the function you want to use, if you want it to work regardless of mod priority.
-#if MISC_ACTIVE == 4 //make sure you're checking for specific MISC revision. (will follow the mod with top priority's MISC version)
-	if MISC.GetStringFromChar(global.characters) == "CHARACTER_AMY" //check for amy for example
-	{
-		//do something
-	}
+    // 当你的模组的优先级其他 MISC 角色高时才会生效。
+    // 如果你想它不管优先级多高也能运行，你也可以定义一个你想用的函数的空白版。
+#if MISC_ACTIVE == 4 // 请确保你是在检查某个特定的 MISC 版本。（会根据优先级最高的模组的 MISC 版本）
+    if MISC.GetStringFromChar(global.characters) == "CHARACTER_AMY" // 举检查艾咪为例
+    {
+        // 做一些东西
+    }
 #endif
 }
 
 //
-// FOR THOSE MAKING MENU MODS:
+// *给那些製作介面模组的人*：
 //
-// Please include MISC.SetChars(3) so things don't break when your mod is above all MISC characters.
-// Just put the function call in the initialization of the menu or something (IT MUST HAVE THE 3 INCLUDED.), and include the code below:
-// It won't break anything to do it, as far as I'm aware.
+// 为了避免程式在你的模组的优先级其他 MISC 角色高时出错，请在你的脚本裏添加 MISC.SetChars(3)。
+// 只需要在介面初始化之类时呼叫那个函数（*引数 (argument) 必须是3*）和添加下面的代码就可以了：
+// 据我所知这应该不会导致其他东西出错。
 //
 function void MISC.SetChars(u8 val)
 {
-	base.MISC.SetChars(val)
+    base.MISC.SetChars(val)
 }
 
-// That should be everything. If there's something more specific you need, or want to request something to be added to this, please let us know!
+// 这应该是所有东西了。如果有什麽特别的需要，或希望我们添加一些东西，请让我们知道！
