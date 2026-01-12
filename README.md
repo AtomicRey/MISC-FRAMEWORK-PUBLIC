@@ -1,15 +1,14 @@
-# More Independent Slots for Characters (MISC)
-## What the fuck is it?
-Just some framework to add characters without replacing other guys in the game. The framework makes use of string saving to allow for a modifiable MISC order based on mod priority and whatnot.
-additionally, this framework is built into the character mod, rather than requiring a seperate framework mod like ESU used to.
-With current limitations, MISC has a potential of 250 character slots because of character slots being built off of the same ones as the default 3AIR system.
-## Why use it?
-For fun
-## Can I use it?
-Sure just give credit where it's due because Ramona, Reyna, and Monty are the crutch of the framework and without any one of them the framework would either not exist or be complete dogshit
-## Okay but HOOWWW do I use it huh? How the fuck do I use it!?
-okay okay calm down. the instructions for each function are within the scripts itself. 
-NOTE that you are required to have beginner to intermediate knowledge of how to make mods for sonic 3 air, and at least some basic scripting knowledge.
-OPTIONAL files are, as the name suggest, optional. this currently contains the SpecialPlayers custom player 2s addon. but it's very complicated and not reccomended for beginners.
-the scripts in "Editable scripts" are the ones you want to modify to get your character set up. The ones in "Non-Editable scripts" are ones you do not want to touch.
-Some scripts don't necessarily need to be edited (outside of renaming variables to your character) such as AdvancedFunctions, or Renderchar.
+# 更多独立角色卡槽（More Independent Slots for Characters，简称 MISC）
+## 这尼玛啥啊？
+只是一个增加更多角色而不取替其他角色的框架。这框架实现了一个通过使用角色串存储来改变基于优先级的MISC顺序的系统
+此外，和ESU（额外角色驱动）不同，这个框架内置在角色的模组里，不需要驱动模组（前置模组）。由于 MISC 的角色卡槽是基于 3AIR 本来的角色系统，MISC 最多支援250个角色卡槽。
+## 为啥用它？
+好玩呗
+## 我能用它嘛？
+当然可以呀贝贝，你只需要把功劳归于应得者，因为 Ramona、Reyna 和 Monty 是这个框架的核心，没有他们的话这框架要么不存在要么就是一坨狗屎
+## 但我又*怎样*使用它呢？我操你妈的怎么用它！？
+别激动嘛～每个函数的指引都包括在了脚本里面。*要注意的是*你必须有基础到中级的 3AIR 模组制作知识和至少一些基本的脚本知识。
+「OPTIONAL」里的，顾名思义，就是没必要的。现在这包含了 SpecialPlayers 自定义玩家二的插件。但是这非常复杂，并不建议给初学者尝试。
+「Editable scripts」里的脚本就是你想修改的内容了，来设置你的角色。在「Non-Editable scripts」里的就不用碰了哈贝贝。
+有些脚本基本上不需要你修改（除了把一些复数重命名为你的角色外），例如 AdvancedFunctions 或 RenderChar。
+# 翻译:Crappy Productions,夜屑奈特(Naite1145)
