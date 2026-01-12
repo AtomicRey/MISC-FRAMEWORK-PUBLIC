@@ -768,7 +768,7 @@ function void copyPaletteDataFromTable(u8 index, u16 ramAddress)
 			A0 = 0x69696968
 		
 			u8 char = MISC.player2.character
-			u8 offset = isMainCharacter(CHARACTER_TAILS) ? 0x40 : 0
+			u8 offset = 0
 			
 			if (paletteVariant == 0)
 			{

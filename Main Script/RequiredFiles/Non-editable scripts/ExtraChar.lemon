@@ -316,7 +316,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		if !(Renderer.hasCustomSprite(key))
 			key = getCharacterContinueIcon(getMainCharacter())
 			
-		Renderer.drawCustomSprite(key, px, py, 0x40 + MISC.getCharBase(MISC.player1.character) * 0x20, prioFlag ? SPRITE_FLAG_PRIO : 0, renderQueue)
+		Renderer.drawCustomSprite(key, px, py, 0x40, prioFlag ? SPRITE_FLAG_PRIO : 0, renderQueue)
 		return true
 	}
 	
@@ -434,7 +434,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		if (objA0.animation.sprite == 0x00)
 		{		
 			u64 key = 0
-			u8 atex = 0x40 + 0x20 * getMainCharacter()
+			u8 atex = 0x40
 			u8 flags = prioFlag ? SPRITE_FLAG_PRIO : 0
 			//Depending on who the loaded MISC is a base of, will replace respective signpost.
 			u8 character
@@ -482,7 +482,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 			//same thing here if there's a custom palette for the endpose. otherwise, you can just do what amy galore did, and default to the base pal.
 			if (System.hasExternalPaletteData(paletteKey, MISC.getEndposePaletteLine(MISC.player1.character)))
 			{
-				atex = 0x40 + getMainCharacter() * 0x20
+				atex = 0x40
 			}
 			Renderer.drawCustomSprite(key, px, py, atex, flags, renderQueue)
 			return true
@@ -540,8 +540,11 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 				key = stringformat((global.zone_act == 0x0d01) ? "%s_small_standing" : "%s_small_exhausted", getCharacterTornadoSpriteKey(character))
 			}
 		}
+		
+		u8 player = (objA0.update_address == 0x05ebb4 || (objA0.subtype2c == 0)) ? 1 : 0
 
-		atex = 0x40 + MISC.getCharBase(character) * 0x20
+		atex = 0x40 + player * 0x20
+		
 		if (Renderer.hasCustomSprite(key))
 		{
 			if (objA0.subtype2c != 0 && isMainCharacter(CHARACTER_KNUCKLES) && outro.ending_type >= 0)
@@ -558,9 +561,9 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	// Character sprites for piloting the Tornado in Sonic's intro
 	if (objA0.update_address == 0x0677ce || objA0.update_address == 0x067800)
 	{
-		u8 character = MISC.getCharBase(MISC.player2.character)
+		u8 character = 1
 		u8 atex = 0x40 + character * 0x20
-		u64 key = MISC.getCustomPilot(character)
+		u64 key = MISC.getCustomPilot(MISC.getCharBase(MISC.player2.character))
 		if (Renderer.hasCustomSprite(key))
 		{
 			Renderer.drawCustomSprite(key, px, py-16, atex, prioFlag, renderQueue+2)
@@ -625,12 +628,31 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 				}
 		}
 
-		if MISC.GetPartner(MISC.player1.character + 1) == 0xff
+		if isMainCharacter(CHARACTER_KNUCKLES)
+		{
+			if (objA0.update_address == 0x05c88c || objA0.update_address == 0x05c8ac || objA0.update_address == 0x05c8c8)
+			{
+				u64 key
+				u8 atex = 0x40
+				if (objA0.animation.sprite >= 0x02 && objA0.animation.sprite <= 0x04)
+					key = MISC.getContinueSprites((global.framecounter >> 0x04) % 0x02)
+				else
+					key = MISC.GetCharSpriteKey(objA0.animation.sprite)
+				if (Renderer.hasCustomSprite(key))
+				{
+					Renderer.drawCustomSprite(key, px, py + char.hitbox.y.UPRIGHT - MISC.GetPlayerHeight(MISC.player1.character), atex, flags, renderQueue)
+					return true
+				}
+				
+			}
+		}
+		else if MISC.GetPartner(MISC.player1.character + 1) == 0xff
 		{
 			if (objA0.update_address == 0x05c660 || objA0.update_address == 0x05c838)
 			{
 				u64 key
-				u8 atex = 0x40 + getMainCharacter() * 0x20
+				u8 atex = 0x40
+				
 				if (objA0.animation.sprite >= 0xbd && objA0.animation.sprite <= 0xbe)
 					key = MISC.getContinueSprites((global.framecounter >> 0x04) % 0x02)
 				else
@@ -648,7 +670,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 			if (objA0.update_address == 0x05c55c || objA0.update_address == 0x05c588)
 			{
 				bool isPlayer1 = (objA0.update_address == 0x05c55c || (objA0.update_address == 0x05c588 && !MISC.HaveCharacterTurnAround(MISC.player1.character))) ? true : false
-				u8 atex = 0x40 + (MISC.getCharBase(MISC.player1.character) * 0x20)
+				u8 atex = 0x40
 				u64 key
 				
 				if isPlayer1 && !(objA0.animation.sprite >= 0x21 && objA0.animation.sprite <= 0x24)
@@ -678,7 +700,8 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 				}
 				else
 					key = MISC.GetCharSpriteKey(objA0.animation.sprite)
-					
+				
+				/*
 				if objA0.animation.sprite == 0x57 || objA0.animation.sprite == 0x56 //standing sprite
 				{
 					u8 char = MISC.getCharBase(MISC.player1.character)
@@ -689,7 +712,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 					if MISC.useTailsTails(MISC.player1.character)
 					{
 						//tails' tails
-						u8 atex2 = 0x40 + (isMainCharacter(CHARACTER_TAILS) ? 0x00 : 0x20)
+						u8 atex2 = 0x60
 					
 						u64 key2 = MISC.getTailSpriteKey(0x22 + ((global.framecounter/8) % 4), MISC.player2.character)
 						if (!Renderer.hasCustomSprite(key2))
@@ -699,6 +722,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 						Renderer.drawCustomSprite(key2, px, py + char.hitbox.y.UPRIGHT - MISC.GetPlayerHeight(MISC.player1.character), atex2, flags, renderQueue)
 					}
 				}
+				*/
 				
 				if (Renderer.hasCustomSprite(key))
 				{
@@ -726,7 +750,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 						key = MISC.GetCharSpriteKey(objA0.animation.sprite, MISC.player2.character)
 				}
 					
-				u8 atex = 0x40 + (isMainCharacter(CHARACTER_TAILS) ? 0x00 : 0x20)
+				u8 atex = 0x60
 				
 				if (Renderer.hasCustomSprite(key))
 				{
@@ -743,7 +767,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 				if MISC.useTailsTails(MISC.player2.character)
 				{
 				
-					u8 atex = 0x40 + (isMainCharacter(CHARACTER_TAILS) ? 0x00 : 0x20)
+					u8 atex = 0x60
 				
 					u64 key = MISC.getTailSpriteKey(objA0.animation.sprite, MISC.player2.character)
 
@@ -765,7 +789,7 @@ function void MISC.handleBonusIcon(s16 px, s16 py, u16 renderQueue)
 {
 	string key = MISC.getBonusIcon()
 	if (Renderer.hasCustomSprite(key))
-		Renderer.drawCustomSprite(key, px, py, 0x40 + MISC.getCharBase(MISC.player1.character) * 0x20, SPRITE_FLAG_PRIO, renderQueue-1)
+		Renderer.drawCustomSprite(key, px, py, 0x40, SPRITE_FLAG_PRIO, renderQueue-1)
 }
 
 //# address-hook(0x02df64) end(0x02e2be)
@@ -1664,7 +1688,7 @@ function void fn05c2e0()
 
 	if (!isMainCharacter(CHARACTER_KNUCKLES))
 	{
-		if (MISC.GetPartner(MISC.player1.character + 1) == 0xff) || getMainCharacter() == CHARACTER_TAILS
+		if (MISC.GetPartner(MISC.player1.character + 1) == 0xff)
 		{
 			u32[0xffffb000] = 0x05c660	// Sonic Alone in continue screen
 		}
@@ -1702,7 +1726,7 @@ function void fn05c2e0()
 	u16 numColors = System.loadExternalPaletteData(paletteKey, 0, 0x800000, 0x20)
 	if (numColors > 0)
 	{
-		u32 dest = 0x802180 + (MISC.getCharBase(MISC.player1.character) * 0x40)
+		u32 dest = 0x802180
 		for (u16 i = 0; i < numColors; ++i)
 		{
 			if u16[dest + i * 2] != packColor(u32[0x800000 + i * 4])
@@ -1716,7 +1740,7 @@ function void fn05c2e0()
 		u16 numColors2 = System.loadExternalPaletteData(paletteKey2, 0, 0x800000, 0x20)
 		if (numColors2 > 0)
 		{
-			u32 dest = 0x802180 + (isMainCharacter(CHARACTER_TAILS) ? 0x00 : 0x40)
+			u32 dest = 0x802180 + 0x40
 			for (u16 i = 0; i < numColors2; ++i)
 			{
 				if u16[dest + i * 2] != packColor(u32[0x800000 + i * 4])
