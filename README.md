@@ -11,4 +11,4 @@
 「OPTIONALFiles」里的，顾名思义，就是非必要的。现在这包含了 SpecialPlayers 自定义玩家二的插件。但是这非常复杂，并不建议给初学者尝试。
 「Editable scripts」里的脚本就是你想修改的内容了，来设置你的角色。在「Non-Editable scripts」里的就不用碰了哈贝贝。
 有些脚本基本上不需要你修改（除了把一些复数重命名为你的角色外），例如 AdvancedFunctions 或 RenderChar。
-## 翻译:Crappy Productions,夜屑奈特(Naite1145)
+## 翻译: A S3AIR Modder (Crappy Productions),夜屑奈特(Naite1145)
