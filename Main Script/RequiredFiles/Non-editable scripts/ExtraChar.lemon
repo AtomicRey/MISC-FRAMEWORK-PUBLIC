@@ -521,7 +521,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		string key = 0
 		u8 atex = 0
 		u8 character = MISC.player2.character
-		if (objA0.update_address == 0x05ebb4)
+		if (objA0.update_address == 0x05ebb4) && MISC.player2.character > 3
 		{
 			key = MISC.getCustomPilot(character)
 		}
@@ -529,10 +529,11 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		{
 			if (objA0.subtype2c != 0)
 				character = MISC.player1.character
-			key = stringformat("%s_small", getCharacterTornadoSpriteKey(character))
 			
-			if (objA0.subtype2c == 0)
+			if (objA0.subtype2c == 0) && MISC.player2.character > 3
 				key = stringformat("%s_small", MISC.getCustomPilot(character))
+			else
+				key = stringformat("%s_small", getCharacterTornadoSpriteKey(character))
 
 			if (objA0.subtype2c != 0 && isMainCharacter(CHARACTER_KNUCKLES) && outro.ending_type < 0)
 			{
@@ -559,7 +560,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	}
 	
 	// Character sprites for piloting the Tornado in Sonic's intro
-	if (objA0.update_address == 0x0677ce || objA0.update_address == 0x067800)
+	if (objA0.update_address == 0x0677ce || objA0.update_address == 0x067800) && MISC.player2.character > 3
 	{
 		u8 character = 1
 		u8 atex = 0x40 + character * 0x20
