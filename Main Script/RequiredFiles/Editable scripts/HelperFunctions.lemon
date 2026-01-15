@@ -1,14 +1,15 @@
 // Unedited base game functions that should be changed in order to properly load your character.
 
-define MISC.player1.character		= u16[0xffffff08] //literally exactly the same as MISC.player1.character, renamed for consistency
-define MISC.player2.character		= u16[0xffffff0c] //used to determine the 2nd player character. (USED IN THE CUSTOM PLAYER 2 ADDON)
+define MISC.player1.character		= u16[0xffffff08] // 和 global.characters 一模一樣，只是為了一致性改了名
+define MISC.player2.character		= u16[0xffffff0c] // 用來判斷玩家2的角色（*在客製化玩家2的插件中使用*）
 
-//to define a character, create a global variable as shown here. make sure it's set to zero!
+// 想要定義一個角色，就像下面一樣創建一個全域變數。確保將它的數值設為0！
 global u8 CHARACTER_CUSTOM = 0
 
-//during this script, various methods will be used to check characters.
-//keep in mind that some of these functions are from the base game, and use base game input values.
+// 在這個腳本裏，會用多種方式來檢查使用的角色。
+// 請記住當中會有些函數來自原版遊戲，和使用原版遊戲的輸入值。
 //however, generally... if the helper function uses "character", it accounts for your character as both p1 AND p2.
+// 不過，在大多數情況下...如果一個輔助函數 (helper function) 的輸入值使用 "character"，
 //if the helper function uses "MISC.player1.character", and vice versa for p2, it's only for that player GLOBALLY.
 //if the helper function uses "slotnum" or something else, it's using the character while MISC.player1.character is not set.
 
