@@ -304,6 +304,19 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		}
 	}
 	
+	//global.characters is apparently reset here. why is it reset here?? THERE IS NO REASON FOR IT TO RESET HERE.
+	if (objA0.update_address == 0x04e202)
+	{
+		if levelselect.characters >= 4
+		{
+			MISC.player1.character = levelselect.characters
+			string key = MISC.getEndLogoSprites(0x03)
+			SpriteHandle Char = Renderer.addSpriteHandle(key, px, py+20, 0xffff)
+			Char.setPaletteOffset(0x40)
+			return true
+		}
+	}
+	
 	// Continue icon
 	if (objA0.update_address == 0x02ebe8 && objA0.animation.sprite >= 0x29 && objA0.animation.sprite <= 0x2b) && MISC.player1.character > 3
 	{
