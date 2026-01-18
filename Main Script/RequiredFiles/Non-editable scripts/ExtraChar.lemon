@@ -318,7 +318,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	}
 	
 	// Continue icon
-	if (objA0.update_address == 0x02ebe8 && objA0.animation.sprite >= 0x29 && objA0.animation.sprite <= 0x2b) && MISC.player1.character > 3
+	if ((objA0.update_address == 0x02ebe8 || objA0.update_address == 0x02ec4a) && objA0.animation.sprite >= 0x29 && objA0.animation.sprite <= 0x2b) && MISC.player1.character > 3
 	{
 		// Enforce priority flag in special stage results screen for Super Emeralds, as it's supposed to be set, but is not part of "objA0.sprite_attributes"
 		if (global.game_mode == 0x48 && global.traded_emeralds)
@@ -1263,10 +1263,16 @@ global bool NewCharBluspheres
 function void fn04d6b8()
 {
 #if EXTRA_CHARACTERS_UNLIMITED
-	if (Input.buttonPressed(BUTTON_X))
+	if (Input.buttonPressed(BUTTON_X) && (objA0.render_flags & render_flag.FLIP_X))
 		{
 		base.fn04d6b8()
 		return
+		}
+	if Input.buttonPressed(BUTTON_A) && bluespheres.xtrachar == true
+		{
+		global.xtrachar = CHARACTER_UNSET
+		levelselect.characters = CHARS_SONIC_ALONE
+		bluespheres.xtrachar = false
 		}
 #endif
 
@@ -1426,28 +1432,29 @@ function void fn04d6b8()
 		}
 		else if NewCharBluspheres == true //only if is set to the new characters
 		{
-			if levelselect.characters == getHighestValidBluSphereChar()
-				{
-				NewCharBluspheres = false
-				levelselect.characters = CHARS_SONIC_ALONE
-				objA0.sprite_attributes = (sprite_attribute.PRIORITY | sprite_attribute.PALETTE.LINE3 | (BlueSphereGame.Bumpers.targetInVRAM >> 5))
-				//return to sonic slot
-				}
-			else
+			if ((objA0.render_flags & render_flag.FLIP_X) == 0)	// Run through this code once, since for some reason both objects can advance the character selection
 			{
-				u8 maxCharacterSelection = (Game.isSecretUnlocked(SECRET_KNUX_AND_TAILS)) ? 255 : 254
-				for (u8 i = 4; i <= maxCharacterSelection; ++i) //go through all valid slots
+				if levelselect.characters == getHighestValidBluSphereChar()
 				{
-					if (isValidBluSphereChar(i) && i > levelselect.characters) //check for next valid slot
+					NewCharBluspheres = false
+					levelselect.characters = CHARS_SONIC_ALONE
+					objA0.sprite_attributes = (sprite_attribute.PRIORITY | sprite_attribute.PALETTE.LINE3 | (BlueSphereGame.Bumpers.targetInVRAM >> 5))
+					//return to sonic slot
+				}
+				else
+				{
+					u8 maxCharacterSelection = (Game.isSecretUnlocked(SECRET_KNUX_AND_TAILS)) ? 255 : 254
+					for (u8 i = 4; i <= maxCharacterSelection; ++i) //go through all valid slots
 					{
-						waitForNextFrame() //wait a frame, otherwise it will go up by 2 slots? for some reason???
-						UpdateGameObjects() //update game objects (copyright symbol) for the singular frame it isn't.
-						levelselect.characters = i //set correct value
-						break //end loop
-					}
+						if (isValidBluSphereChar(i) && i > levelselect.characters) //check for next valid slot
+						{
+							levelselect.characters = i //set correct value
+							break //end loop
+						}
 
-					if (i >= maxCharacterSelection)
-						break //end loop if it's the max character (failsafe, in case the above thing fails)
+						if (i >= maxCharacterSelection)
+							break //end loop if it's the max character (failsafe, in case the above thing fails)
+					}
 				}
 			}
 		}
@@ -1481,7 +1488,7 @@ function void fn00da4e()
 
 function bool Standalone.onDrawVdpSpriteCompound(s16 px, s16 py, u8 size, u16 index, u16 renderQueue, u8 spriteCounter)
 {
-	if (index == 0x83BD || index == 0x93BD) // arrows in data select, draw them above everything else
+	if ((index == 0x83BD || index == 0x93BD) && objA0.update_address == 0x00d42c) // arrows in data select, draw them above everything else
 	{
 		Renderer.drawVdpSprite(px, py, size, index, 0x9ffb)
 		return true
