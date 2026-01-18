@@ -191,7 +191,7 @@ function void MISC.UpdateSuperPalette(u8 characterVersion)
 		u16 blendFactor = clamp(u16(super.palettefx.timer) * 0x100 / 0x12, 0, 0x100)
 		for (u8 underwater = 0; underwater < (level.water_present ? 2 : 1); ++underwater)
 		{
-			u32 offset = getMainCharacter() * 0x40 + (underwater ? 0x300 : 0)
+			u32 offset = 0 * 0x40 + (underwater ? 0x300 : 0)
 			u32 source = 0x802180 + offset
 			u32 dest   = 0x802000 + offset
 
