@@ -1,11 +1,18 @@
 
+//this script only works if your PLAYER 1 character ISN'T a tails base, due to how the game handles tails' control value. (he uses control.tails instead of control.pad2 or control.pad1. FOR SOME REASON??)
+//also why would you use a tails base anyway? it's infinitely harder, AND MISC supports sonic bases with BOTH tails-style animations AND tail objects. so why would you ever do tails base??????
+//MISC player 2s can be of any base though. but still don't willingly make your character a tails base unless you have a REALLY good reason for it.
+
+//okay well technically tails player 1s CAN have partners but they will control incredibly weirdly and have bugs.
+
 #define MISC_SPECIALPLAYERS_ADDON
 
 function void MISC.SpawnSpecialPlayer()
 {
 	if MISC.player1.character == CHARACTER_CUSTOM //prevent looping by putting if statement here
 	{
-		
+		//you can manually change your MISC.player1.character value here. for example, if you have a MISC character, CHARACTER_CUSTOM_TAILS, that is just CHARACTER_CUSTOM but with a tails partner.
+		//you can just make them CHARACTER_CUSTOM with a bool that adds tails. good for if you don't wanna check for 2 characters.
 		return
 	}
 	
@@ -404,28 +411,8 @@ function void Character.Initialization.shared(u8 character)
 	if objA0.update_address != addressof(Character.BaseUpdate.MISCPartner)
 		return
 
-	if (isMainCharacter(CHARACTER_TAILS)) //fix the layers
-	{
-		if (checkpoint.number == 0)
-		{
-			char.sprite_attributes = (Char.Tails.targetInVRAM >> 5)
-			char.layer_flags1 = 0x0c
-			char.layer_flags2 = 0x0d
-
-			if (global.stage_type != 2)
-			{
-				checkpoint.x = char.position.x.u16
-				checkpoint.y = char.position.y.u16
-				checkpoint.sprite_attr = char.sprite_attributes
-				checkpoint.layer_flags = char.layer_flags
-			}
-		}
-	}
-	else
-	{
-		char.sprite_attributes = (Char.Tails.targetInVRAM >> 5) | (u16[0xffffb000 + 0x0a] & sprite_attribute.PRIORITY)
-		char.layer_flags = u16[0xffffb000 + 0x46]
-	}
+	char.sprite_attributes = (Char.Tails.targetInVRAM >> 5) | (u16[0xffffb000 + 0x0a] & sprite_attribute.PRIORITY)
+	char.layer_flags = u16[0xffffb000 + 0x46]
 	
 	checkpoint.number.backup.tails = checkpoint.number
 }
@@ -768,7 +755,10 @@ function void copyPaletteDataFromTable(u8 index, u16 ramAddress)
 			A0 = 0x69696968
 		
 			u8 char = MISC.player2.character
-			u8 offset = 0
+			u8 offset = isMainCharacter(CHARACTER_TAILS) ? 0x40 : 0
+			
+			if MISC.player1.character > 3 //if player 1 isn't a MISC, use the previous logic. MISC players always load in palette 1, so load MISC partners in palette 2
+				offset = 0
 			
 			if (paletteVariant == 0)
 			{
