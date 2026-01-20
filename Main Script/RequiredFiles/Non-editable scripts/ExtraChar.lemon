@@ -449,17 +449,8 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 			u64 key = 0
 			u8 atex = 0x40
 			u8 flags = prioFlag ? SPRITE_FLAG_PRIO : 0
-			//Depending on who the loaded MISC is a base of, will replace respective signpost.
-			u8 character
-			if getMainCharacter() == CHARACTER_SONIC
-				character = (objA0.animation.sprite == 0) ? MISC.player1.character : (objA0.animation.sprite == 1) ? CHARACTER_TAILS : (objA0.animation.sprite == 2) ? CHARACTER_KNUCKLES : 0xff
-			else if getMainCharacter() == CHARACTER_TAILS
-				character = (objA0.animation.sprite == 0) ? CHARACTER_SONIC : (objA0.animation.sprite == 1) ? MISC.player1.character : (objA0.animation.sprite == 2) ? CHARACTER_KNUCKLES : 0xff
-			else if getMainCharacter() == CHARACTER_KNUCKLES
-				character = (objA0.animation.sprite == 0) ? CHARACTER_SONIC : (objA0.animation.sprite == 1) ? CHARACTER_TAILS : (objA0.animation.sprite == 2) ? MISC.player1.character : 0xff
-
-			if (character != 0xff)
-				key = getCharacterSignpostSpriteKey(character) //note that you will need to edit this function to accomodate for more signposts
+			//Depending on who the loaded MISC is a base of, it will replace respective signpost.
+			key = getCharacterSignpostSpriteKey(MISC.player1.character) //note that you will need to edit this function to accomodate for more signposts
 			Renderer.drawCustomSprite(key, px, py, atex, prioFlag ? SPRITE_FLAG_PRIO : 0, renderQueue)
 			return true
 		}           
@@ -538,13 +529,18 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		{
 			key = MISC.getCustomPilot(character)
 		}
-		else //if (objA0.update_address == 0x05ed18)
+		else if (objA0.update_address == 0x05ed18)
 		{
 			if (objA0.subtype2c != 0)
 				character = MISC.player1.character
 			
-			if (objA0.subtype2c == 0) && MISC.player2.character > 3
-				key = stringformat("%s_small", MISC.getCustomPilot(character))
+			if (objA0.subtype2c == 0)
+			{
+				if MISC.player2.character > 3
+					key = stringformat("%s_small", MISC.getCustomPilot(character))
+				else
+					key = 0
+			}
 			else
 				key = stringformat("%s_small", getCharacterTornadoSpriteKey(character))
 
