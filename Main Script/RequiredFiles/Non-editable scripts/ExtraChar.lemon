@@ -2216,8 +2216,6 @@ function void fn00d42c()
 		u32 tempValue0 = sharedmemory.xtrachar + u32(read)
 		objA0.animation.timer = u8[tempValue0]
 	}
-	else
-		return
 	
 	if (dataselect.slot_selected == read + 1)
 	{
@@ -2227,9 +2225,7 @@ function void fn00d42c()
 	D0.u8 = dataselect.slot_selected - 0x01
 	if (D0.u8 == objA0.flags2e)
 	{
-		u8 result = fn00d458()
-		
-		if (result == 0x00) && (control.pad1.pressed & DataSelect.CONTROLS_ACCEPT)
+		if (control.pad1.pressed & DataSelect.CONTROLS_ACCEPT)
 		{
 			if (objA0.animation.timer > 0x00 && dataselect.slot_selected > 0x00) //do the stuff!!
 			{
