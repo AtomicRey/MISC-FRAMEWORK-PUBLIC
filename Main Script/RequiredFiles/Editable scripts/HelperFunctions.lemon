@@ -25,18 +25,6 @@ function bool MISC.SetCharAsValid(u8 slotnum) //Determine what values are valid
 		return false
 }
 
-//Function specific to TAG TEAM compatibility. basically, do you want it to be compatible with tag team? otherwise ignore this.
-function bool TagTeam.SetMISCAsValid(u8 slot)
-{
-    bool base = base.TagTeam.SetMISCAsValid(slot)
-	if (slot == CHARACTER_CUSTOM)
-        return true
-	else if base
-		return true
-    else
-        return false
-}
-
 // Sets your character to valid for Blue Sphere in the EXTRAS menu. (not relevant to special stages)
 function bool MISC.SetBluSphereCharAsValid(u8 slotnum) //Determine what values are valid
 {
@@ -69,7 +57,7 @@ function void MISC.SetChars(u8 val)
 }
 
 // Make sure the two functions below are correctly correlated, problems will occur otherwise (primarily with saving)
-// These functions get the character string based on an inputed id value, and an id based on an inputed string value, respectively.
+// This functions can be used to get identifiers without the use of a global variable, like MISC.GetStringFromChar("CHARACTER_AMY") to check for specifically Galore Amy
 function string MISC.GetStringFromChar(u8 char)
 {
 	if char == CHARACTER_CUSTOM
@@ -78,6 +66,7 @@ function string MISC.GetStringFromChar(u8 char)
 		return base.MISC.GetStringFromChar(char)
 }
 
+// I'm not sure what this would be usable for but MISC uses it for saving.
 function u8 MISC.GetCharFromString(string char)
 {
 	if char == "CHARACTER_CUSTOM"
@@ -103,7 +92,7 @@ function u8 MISC.useTailsTails(u8 character)
 	return base.MISC.useTailsTails(character)
 }
 
-// Necessary for Second Player MISC support
+// Necessary for Second Player MISC support, to set what character P2 uses
 function u8 MISC.GetPartner(u8 character)
 {
 	u8 slotnum = character - 1
@@ -156,37 +145,13 @@ function string getCharacterSignpostSpriteKey(u8 character)
 }
 
 // Changes sprite keys for character endposes at their respective ends of the game
+// You can use char.animation.sprite to add the smaller sprite and super version like the base game characters
 function string getCharacterEndPoseSpriteKey(u8 character, bool isSuperActive)
 {
 	if character == CHARACTER_CUSTOM
 		return stringformat((isSuperActive) ? "endpose_char%s_super" : "endpose_char%s", character)
 		//load seperate super/base endpose sprites. super is endpose_custom_super, base is endpose_custom
 	return base.getCharacterEndPoseSpriteKey(character, isSuperActive)
-}
-
-// ESS compat. make sure the u64 in ESS_getcharname matches the name checks in ESS_getCharLifeIcon and ESS_getCharContIcon
-function u64 ESS_getcharname(u8 chars)
-{
-	u8 slotnum = chars - 1
-	if slotnum ==  CHARACTER_CUSTOM
-		return "CUSTOM"
-	else
-		return base.ESS_getcharname(chars)
-}
-
-function u64 ESS_getCharLifeIcon(u64 name)
-{
-	if (name == "CUSTOM")
-		return "ESS_Life_Custom"
-	return base.ESS_getCharLifeIcon(name)
-}
-
-function u64 ESS_getCharContIcon(u64 name)
-{
-	if (name == "CUSTOM")
-		return "ESS_Cont_Custom"
-		//replace with return "yourconticon"
-	return base.ESS_getCharContIcon(name)
 }
 
 // Specific to MISC for convenience. Modify to include your character's palette(s).
@@ -444,21 +409,6 @@ function bool UseottOZO.allowFBZForZoneNumbers()
 
 //For more complex zone order manipulations, return false on the UOZO functions and look at AdvancedFunctions.lemon
 
-// In case you want to change something with the way ESS switches the zone selection
-// D6 handles the maximum, apparently
-function void ESS_switchZoneSelection()
-{
-	u8 slotnum = MISC.GetCharFromString(MISC.GetStringFromSlot(dataselect.slot_selected))
-	if (slotnum == CHARACTER_CUSTOM)
-	{
-		u8 AllowedZones = MISC.getAllowedZones(slotnum)
-		if objA0.value3b < 2 && AllowedZones == 0x0d
-			AllowedZones = 0x0c
-		D6 = AllowedZones
-	}
-	base.ESS_switchZoneSelection()
-}
-
 // Determines if AI Tails should spawn in levels for transitions e.g. MHZ1 and CNZ1 intros as Sonic
 // this can be useful to edit if your character has a custom method of entering the stage, like a custom intro.
 // for most cases this should be true, unless your char uses knuckles' zones.
@@ -626,7 +576,7 @@ function string MISC.getBonusIcon()
 }
 
 // In order to use the hitbox functions below, change the player height in the MISC.GetPlayerHeight() function, and refer to AdvancedFunctions.lemon for more info if you want to edit more stuff.
-// This is already set up in the Special 2nd player addon, and in TAG team, so you could reference the code for that if you want to use these functions.
+// This is already set up in the Special 2nd player addon, so you could reference the code for that if you want to use these functions.
 
 // Keep in mind that this can cause bugs in some interactions relating to size, because SONIC 3 SUCKS- so you may have to do some debugging after.
 

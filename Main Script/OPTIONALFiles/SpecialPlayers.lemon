@@ -23,6 +23,7 @@ function bool MISC.SpawnSpecialPlayer2()
 {
 	MISC.player2.character = CHARACTER_TAILS
 
+	//This spawns in the 2nd player manually. you can change this to whatever. technically, if you're skilled enough, you could make this work with ANY character!
 	if MISC.player1.character == CHARACTER_CUSTOM
 	{
 		u32[0xffffb04a] = addressof(Character.BaseUpdate.MISCPartner)
@@ -38,11 +39,11 @@ function bool MISC.SpawnSpecialPlayer2()
 	return base.MISC.SpawnSpecialPlayer2()
 }
 
+//This just sets the player in the index to whatever character you want.
 function void MISC.setPlayer(u8 player, u8 character)
 {
 	u32 A0backup = A0
-	//tag team support
-	A0 = (player == 1) ? 0xffffb000 : (player == 2) ? 0xffffb04a : (player == 3) ? 0xffffc2ca : 0xffffc314
+	A0 = (player == 1) ? 0xffffb000 : 0xffffb04a
 	
 	MISC.player = character
 	if player == 2
@@ -53,8 +54,7 @@ function void MISC.setPlayer(u8 player, u8 character)
 //Check if A0 is the selected player
 function bool MISC.isPlayer(u8 player)
 {
-	//tag team compat
-	u8 check = (A0 == 0xffffb000) ? 1 : (A0 == 0xffffb04a) ? 2 : (A0 == 0xffffc2ca) ? 3 : 4
+	u8 check = (A0 == 0xffffb000) ? 1 : 2
 	
 	if check == player
 		return true
@@ -67,8 +67,7 @@ function bool MISC.getCharacter(u8 player, u8 character)
 	if character < 4 //not a MISC char
 	{
 		u32 A0backup = A0
-		//tag team support
-		A0 = (player == 1) ? 0xffffb000 : (player == 2) ? 0xffffb04a : (player == 3) ? 0xffffc2ca : 0xffffc314
+		A0 = (player == 1) ? 0xffffb000 : 0xffffb04a
 		
 		if char.character == character
 			return true
@@ -84,8 +83,7 @@ function bool MISC.getCharacter(u8 player, u8 character)
 	else
 	{
 		u32 A0backup = A0
-		//tag team support
-		A0 = (player == 2) ? 0xffffb04a : (player == 3) ? 0xffffc2ca : 0xffffc314
+		A0 = 0xffffb04a
 		
 		if MISC.player == character
 			return true
@@ -137,6 +135,7 @@ define MISC.player = u8[A0 + 0x29]
 
 //You can change this address
 //do NOT edit any of the code unless you change this address
+//if you DO change the address, you need to rename all instances of Character.BaseUpdate.MISCPartner() to something else.
 //# address-hook(0x1f0a94)
 function void Character.BaseUpdate.MISCPartner()
 {
@@ -257,6 +256,8 @@ function void Character.BaseUpdate.MISCPartner()
 	}
 }
 
+//ignore this, this just stops the players' sprite patterns from loading, which doesn't matter because they're renderhooked anyway.
+//This prevents visual bugs with same-base partnerships
 function void updateCharacterSpritePatterns(u8 character, u8 animationSprite)
 {
 	if objA0.update_address != addressof(Character.BaseUpdate.MISCPartner)
@@ -266,6 +267,7 @@ function void updateCharacterSpritePatterns(u8 character, u8 animationSprite)
 	}
 }
 
+//This is to render the players in the special stages!
 function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 {
 	bool prioFlag = (objA0.sprite_attributes & sprite_attribute.PRIORITY) != 0
@@ -417,6 +419,7 @@ function void Character.Initialization.shared(u8 character)
 	checkpoint.number.backup.tails = checkpoint.number
 }
 
+//When the character presses jump in mid-air, this happens
 function bool onCharacterPressedJumpInMidAir(u8 input_state, u8 input_pressed)
 {
 	u32 A0backup = A0
@@ -428,7 +431,7 @@ function bool onCharacterPressedJumpInMidAir(u8 input_state, u8 input_pressed)
 	}
 	A0 = A0backup
 	
-	//you can put unique interactions here
+	//you can put unique interactions here, like partner moves!
 	
 	//don't allow normal double jump moves
 	if objA0.update_address == addressof(Character.BaseUpdate.MISCPartner)
@@ -439,6 +442,7 @@ function bool onCharacterPressedJumpInMidAir(u8 input_state, u8 input_pressed)
 }
 
 //Change how the AI for partners is initialised
+//This just fixes bugs!
 //# address-hook(0x013a10) end(0x013b24)
 function void Character.TailsAI.Init()
 {
@@ -606,7 +610,7 @@ function void fn013bf8()
 	char.control_flags = (control_flag.DISABLE_INTERACTION | control_flag.DISABLE_UPDATE)
 }
 
-//Don't drain rings
+//Don't drain rings as P2 characters
 //# address-hook(0x011b26) end(0x011bdc)
 function void Character.UpdateRingsInSuperForm()
 {
@@ -778,6 +782,7 @@ function void copyPaletteDataFromTable(u8 index, u16 ramAddress)
 	}
 }
 
+//Disallow P2 from breaking walls
 function void fn0218ce()
 {
 	if objA1.update_address != addressof(Character.BaseUpdate.MISCPartner)
@@ -794,6 +799,7 @@ function bool updateDebugModeInput(bool playingAsTails)
 	return false
 }
 
+//Don't allow P2 to use debug
 //# address-hook(0x092ad4) end(0x092c52)
 function void DebugMode.EvaluateInput()
 {
@@ -801,7 +807,7 @@ function void DebugMode.EvaluateInput()
 		base.DebugMode.EvaluateInput()
 }
 
-//Correct bluespheres colours
+//Correct bluespheres colours for knuckles base characters
 function void copyMemory(u32 destAddress, u32 sourceAddress, u32 bytes)
 {
 	base.copyMemory(destAddress, sourceAddress, bytes)
@@ -811,7 +817,7 @@ function void copyMemory(u32 destAddress, u32 sourceAddress, u32 bytes)
 	}
 }
 
-//fix ssz bar
+//fix ssz bar for MISC characters
 //# address-hook(0x0453e6) end(0x045526)
 function void fn0453e6()
 {
@@ -980,6 +986,8 @@ function void fn06d4dc()
 	A2 = 0xfffffa8a
 	fn06d45e()
 }
+
+//A bunch of edited functions to work with MISC P2s. do not edit these.
 
 //# translated(0x0117da) end(0x0118ba)
 //# translated(0x015002) end(0x0150d8)
@@ -1172,6 +1180,10 @@ function void Character.CheckForStartRolling()
 		control.player1.state = input_backup
 }
 
+//Disables sonic's intro if your character has a partner.
+//This is generally useful because P2s can sometimes break intros,
+//but you can remove this if you don't want to do that.
+
 function bool isSonicIntro()
 {
 	if (MISC.player1.character == CHARACTER_CUSTOM)
@@ -1211,6 +1223,7 @@ function void fn01c4d0()
 
 //Cutscene fix for MHZ 2
 //you don't really need to know what any of this does. just replace the BaseUpdate with your char
+
 //# address-hook(0x076404) end(0x076450)
 function void fn076404()
 {
@@ -1291,7 +1304,7 @@ function void MHZ2.cutscene.p2()
 	u8[A1 + 0x2e] = (control_flag.DISABLE_INTERACTION | control_flag.DISABLE_UPDATE)
 }
 
-//finally replace AI with different one, because tails & tails.
+//finally replace AI with different one.
 
 define control.misc.pad2 = u16[0xfffff66c]
 define control.misc.pad2.state = u8[0xfffff66c]

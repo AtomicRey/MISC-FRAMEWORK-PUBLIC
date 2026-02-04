@@ -33,8 +33,7 @@ function bool MISC.SpawnSpecialPlayer2()
 function void MISC.setPlayer(u8 player, u8 character)
 {
 	u32 A0backup = A0
-	//tag team support
-	A0 = (player == 1) ? 0xffffb000 : (player == 2) ? 0xffffb04a : (player == 3) ? 0xffffc2ca : 0xffffc314
+	A0 = (player == 1) ? 0xffffb000 : 0xffffb04a
 	
 	MISC.player = character
 	if player == 2
@@ -45,8 +44,7 @@ function void MISC.setPlayer(u8 player, u8 character)
 //Check if A0 is the selected player
 function bool MISC.isPlayer(u8 player)
 {
-	//tag team compat
-	u8 check = (A0 == 0xffffb000) ? 1 : (A0 == 0xffffb04a) ? 2 : (A0 == 0xffffc2ca) ? 3 : 4
+	u8 check = (A0 == 0xffffb000) ? 1 : 2
 	
 	if check == player
 		return true
@@ -59,8 +57,7 @@ function bool MISC.getCharacter(u8 player, u8 character)
 	if character < 4 //not a MISC char
 	{
 		u32 A0backup = A0
-		//tag team support
-		A0 = (player == 1) ? 0xffffb000 : (player == 2) ? 0xffffb04a : (player == 3) ? 0xffffc2ca : 0xffffc314
+		A0 = (player == 1) ? 0xffffb000 : 0xffffb04a
 		
 		if char.character == character
 			return true
@@ -76,8 +73,7 @@ function bool MISC.getCharacter(u8 player, u8 character)
 	else
 	{
 		u32 A0backup = A0
-		//tag team support
-		A0 = (player == 2) ? 0xffffb04a : (player == 3) ? 0xffffc2ca : 0xffffc314
+		A0 = 0xffffb04a
 		
 		if MISC.player == character
 			return true

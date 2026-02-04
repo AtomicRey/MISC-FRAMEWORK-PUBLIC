@@ -5,6 +5,9 @@ additionally, this framework is built into the character mod, rather than requir
 With current limitations, MISC has a potential of 250 character slots because of character slots being built off of the same ones as the default 3AIR system.
 ## Why use it?
 For fun
+Okay but actually, MISC provides freedom in the way you want to create your character mod! It allows for using Sonic, Tails, or Knuckles bases for your character, supports tail objects for all 3,
+provides the ability to mix animation styles (e.g. sonic base with tails-like anims, tails base with knuckles-like anims, etc.) among many other things. Additionally, MISC will be updated over time
+with more optional addons that can improve your character mod!
 ## Can I use it?
 Sure just give credit where it's due because Ramona, Reyna, and Monty are the crutch of the framework and without any one of them the framework would either not exist or be complete dogshit
 ## Okay but HOOWWW do I use it huh? How the fuck do I use it!?
