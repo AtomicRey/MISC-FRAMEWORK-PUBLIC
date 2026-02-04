@@ -2216,6 +2216,8 @@ function void fn00d42c()
 		u32 tempValue0 = sharedmemory.xtrachar + u32(read)
 		objA0.animation.timer = u8[tempValue0]
 	}
+	else
+		return
 	
 	if (dataselect.slot_selected == read + 1)
 	{
