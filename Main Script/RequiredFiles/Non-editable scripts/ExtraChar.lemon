@@ -1337,7 +1337,7 @@ function void MISC.frameworkSwitcher(u8 limit)
 	if (control.pad1.pressed & CONTROL_A && levelselect.selection < limit)
 	{
 		playSound(0xC3)
-		
+		global.characters = 1
 	#if EXTRA_CHARACTERS_UNLIMITED
 		levelselect.xtrachar = false
 		global.xtrachar = CHARACTER_UNSET
