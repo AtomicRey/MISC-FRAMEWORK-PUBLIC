@@ -1667,7 +1667,7 @@ function void fn04d6b8()
 				else
 				{
 					levelselect.characters++
-					if (levelselect.characters > 4)
+					if (levelselect.characters >= 4)
 					{
 						u8 maxCharacterSelection = (Game.isSecretUnlocked(SECRET_KNUX_AND_TAILS)) ? 255 : 254
 						for (u8 i = 4; i <= maxCharacterSelection; ++i) //go through all valid slots
