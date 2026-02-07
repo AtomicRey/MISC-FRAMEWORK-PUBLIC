@@ -391,18 +391,21 @@ function bool MISC.drawCHARACTER_CUSTOM(u8 character, u8 variant, s16 px, s16 py
 			0x37, 0x36, 0x35, 0x34, 0x33, 0x32, 0x31, 0x3c, 0x3b, 0x3a, 0x39, 0x38
 		}
 		if (animationSprite >= 0x6c && animationSprite <= 0x77) //sideways Corkscrew (AIZ tree, CNZ helix thing)
-		{
-			bool onThatFuckingObject = objA0.state.both == char.state.RUNNING2 // more specifically, FBZ2 vertical cylinders that spin
-			
-			animationSprite = MISCsidewaysCorkscrewSprites[animationSprite-0x6c]
-			angle = onThatFuckingObject ? 0x40 : -0x40
-			if (!onThatFuckingObject)
-				flags ^= SPRITE_FLAG_FLIP_Y
-			else if (flags & SPRITE_FLAG_FLIP_Y)
-				flags ^= SPRITE_FLAG_FLIP_Y
-			else
-				flags ^= SPRITE_FLAG_FLIP_X
-		}
+        {
+			//Ramona you fucking idiot ~ Reyna
+			//I hate you ~ Ramona
+		
+            animationSprite = MISCsidewaysCorkscrewSprites[animationSprite-0x6c]
+            angle = -0x40
+            
+            bool flippedX = flags & SPRITE_FLAG_FLIP_X
+            bool flippedY = flags & SPRITE_FLAG_FLIP_Y
+            flags &= ~(SPRITE_FLAG_FLIP_X | SPRITE_FLAG_FLIP_Y)
+            if (!flippedX)
+                flags |= SPRITE_FLAG_FLIP_Y
+            if (flippedY)
+                flags |= SPRITE_FLAG_FLIP_X
+        }
 		if (animationSprite >= 0x49 && animationSprite <= 0x54) //angled Corkscrew (CNZ barber pole)
 		{
 			animationSprite = MISCangledCorkscrewSprites[animationSprite-0x49]
