@@ -1,9 +1,7 @@
 
-//this script only works if your PLAYER 1 character ISN'T a tails base, due to how the game handles tails' control value. (he uses control.tails instead of control.pad2 or control.pad1. FOR SOME REASON??)
-//also why would you use a tails base anyway? it's infinitely harder, AND MISC supports sonic bases with BOTH tails-style animations AND tail objects. so why would you ever do tails base??????
-//MISC player 2s can be of any base though. but still don't willingly make your character a tails base unless you have a REALLY good reason for it.
-
-//okay well technically tails player 1s CAN have partners but they will control incredibly weirdly and have bugs.
+//this script is for making CUSTOM PLAYER 2s for MISC characters.
+//this only supports CUSTOM CHARACTERS as player 2 for now, but there is a process to adding knuckles, sonic, etc. as partners as well.
+//I won't be explaining that since it's probably not relevant for most anyway. but if you ask around, I'm sure somebody will help you.
 
 #define MISC_SPECIALPLAYERS_ADDON
 

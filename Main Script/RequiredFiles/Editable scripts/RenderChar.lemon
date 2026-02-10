@@ -494,6 +494,10 @@ function bool MISC.drawCHARACTER_CUSTOM(u8 character, u8 variant, s16 px, s16 py
 			player = (u16[A0 + 0x30] == 0xb000) ? 0 : (u16[A0 + 0x30] == 0xb04a) ? 1 : (u16[A0 + 0x30] == 0xc2ca) ? 2 : 3
 		else
 			player = (isPlayer1) ? 0 : (A0 == 0xffffb04a) ? 1 : (A0 == 0xffffc2ca) ? 2 : 3
+			
+		//if the main character is a non-MISC tails, then set player to 0 so the character always loads into palette slot 1
+		if MISC.player1.character < 4 && isMainCharacter(CHARACTER_TAILS)
+			player = 0
 		
 		atex = 0x40 + player * 0x20
 	}
