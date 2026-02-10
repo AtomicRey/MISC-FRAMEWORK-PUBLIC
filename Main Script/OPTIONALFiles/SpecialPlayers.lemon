@@ -27,7 +27,10 @@ function bool MISC.SpawnSpecialPlayer2()
 		u32[0xffffb04a] = addressof(Character.BaseUpdate.MISCPartner)
 		u16[0xffffb04a + 0x10] = u16[0xffffb000 + 0x10] - 0x20
 		u16[0xffffb04a + 0x14] = u16[0xffffb000 + 0x14] + 4
-		u32[0xffffcc9e] = 0x018b3e
+		if isMainCharacter(CHARACTER_TAILS)
+			u32[0xffffcc54] = 0x018b3e
+		else
+			u32[0xffffcc9e] = 0x018b3e
 		tails.ai_routine = 0
 		//set player 2 as partner
 		MISC.setPlayer(2, CHARACTER_PARTNER) //this can literally be any MISC character, even the same as player 1.
@@ -137,14 +140,16 @@ define MISC.player = u8[A0 + 0x29]
 //# address-hook(0x1f0a94)
 function void Character.BaseUpdate.MISCPartner()
 {
+	A4 = isMainCharacter(CHARACTER_TAILS) ? addressof(global.move.speedcap) : addressof(global.move.speedcap.tails)	// Address: 0xfffff760 = Base address of speed caps & acceleration/deceleration
+	A5 = isMainCharacter(CHARACTER_TAILS) ? addressof(camera.yoffset.player) : addressof(camera.yoffset.tails)	// Address: 0xffffee2c
+	A6 = isMainCharacter(CHARACTER_TAILS) ? 0xffffcc54 : 0xffffcc9e	// Base address of dust cloud object
+	
 	//correct spindash stuff in post
 	u8 SpindashOffset = (MISC.getCharBase(MISC.player2.character) != CHARACTER_TAILS) ? 0 : 1
-	if u8[0xffffcc9e + 0x38] != SpindashOffset
-		u8[0xffffcc9e + 0x38] = SpindashOffset
+	if u8[A6 + 0x38] != SpindashOffset
+		u8[A6 + 0x38] = SpindashOffset
 		
-	A4 = addressof(global.move.speedcap.tails)	// Address: 0xfffff760 = Base address of speed caps & acceleration/deceleration
-	A5 = addressof(camera.yoffset.tails)	// Address: 0xffffee2c
-	A6 = 0xffffcc9e							// Base address of dust cloud object
+	u16[A6 + 0x42] = 0xb04a
 	
 	System.callFunctionByName("MISC.CustomPlayerUpdates")
 	
