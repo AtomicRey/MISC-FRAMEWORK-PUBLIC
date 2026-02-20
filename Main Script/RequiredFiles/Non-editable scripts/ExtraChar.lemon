@@ -581,6 +581,8 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 			//same thing here if there's a custom palette for the endpose. otherwise, you can just do what amy galore did, and default to the base pal.
 			if (System.hasExternalPaletteData(paletteKey, 0))
 			{
+				if outro.ending_type >= 0 && super.palettefx.timer != 0x80 //allows for super palettes in the ending
+					super.palettefx.state = 0x80
 				atex = 0x40
 			}
 			Renderer.drawCustomSprite(key, px, py, atex, flags, renderQueue)
