@@ -1,0 +1,235 @@
+//This script is for adding compatibility to Extra Save Slots! it's different from the old one because
+//Lemons decided to make a bunch of completely bullshit changes that break everything that isn't ECF.
+
+//btw lemons can you play fortnite with me
+
+#if EXTRA_SAVE_SLOTS_ACTIVE
+
+//I hate this
+//luckily, you don't need to edit this function!
+function void ESS_switchZoneSelection()
+{
+	u8 char = u16[A0 + 0x34]
+	
+	if (char < 5)
+	{
+		base.ESS_switchZoneSelection()
+		return
+	}
+	
+	char -= 1
+	u8 AllowedZones = MISC.getAllowedZones(char)
+	if objA0.value3b < 2 && AllowedZones == 0x0d
+		AllowedZones = 0x0c
+	D6 = AllowedZones
+	
+	D1.u16 = u16[A0 + 0x36]
+	u16 oldSel = D1.u16
+	
+	if (control.pad1.pressed & CONTROL_DOWN)
+	{
+		playSound(0x5b)
+		--D1.u16
+		if (D1.s16 < 0 || D1.s16 > D6.u16)
+			D1.u16 = D6.u16
+	}
+	else if (control.pad1.pressed & CONTROL_UP)
+	{
+		playSound(0x5b)
+		++D1.u16
+		if (D1.u16 > D6.u16)
+			D1 = 0
+	}
+
+	// lego bouwer 9's original zone order mod, handle fbz.
+	if (Mods.isModActive("Original zone order")) && (u16[A0 + 0x34] >= CHARS_KNUCKLES_ALONE) && (oldSel != D1.u16 && D1.u16 == 4) 
+	{
+		if (D1.u16 > oldSel)
+			++D1.u16
+		else
+			--D1.u16
+	}	
+}
+
+//You... also!! Don't need to change this function!
+function void ESS_drawCharacters(s16 px, s16 py)
+{
+	u16 renderQueue = 0x6000
+	
+	u16 characters = u16[A0 + 0x34]
+	
+	if objA0.update_address != 0x00d30c
+	{
+	u8 add = (ESS_set_visstyle == ESS_STYLE_S3K) ? 25 : 0
+	u8 read = (px + add - 99 - 48 + ESS_scroll_x)/104
+	float diff = abs(abs(py - ESS_scroll_y_d) - 150)
+	if diff > (12 + add)
+		characters = u8(ESS.charbackups >> (56 - (8 * read)))
+	}
+	else
+		characters = dataselect.nosave_characters
+	
+	if characters < 5
+	{
+		base.ESS_drawCharacters(px, py)
+		return
+	}
+	MISC.drawCharSprite(px, py+20, renderQueue, characters-1)
+}
+
+//This gets the name of your character used in ESS. remember what you put here!
+function u64 ESS_getcharname(u8 chars)
+{
+	u8 slotnum = chars - 1
+	if slotnum == CHARACTER_CUSTOM
+		return "Custom"
+		//default to char slot as the name, as there is a function to accomodate for this
+	else
+		return base.ESS_getcharname(chars)
+}
+
+//You!! Also!! Don't need to change anything here!!
+function void ESS_drawCharIcons(u8 combo, s16 px, s16 py, u16 num)
+{
+	u8 read = (px - 99 + 32 - 48 + ESS_scroll_x)/104
+	float diff = abs(abs(py - ESS_scroll_y_d) - 150)
+	if diff > 60
+		combo = u8(ESS.charbackups >> (56 - (8 * read)))
+
+	if combo < 5
+	{
+		base.ESS_drawCharIcons(combo, px, py, num)
+		return
+	}
+
+	string lives
+	string conts
+	string name = ESS_getcharname(combo)
+	bool useBase
+	
+	if (name)
+	{
+		lives = getECFCharacterLivesIcon(name)
+		conts = getECFCharacterContinueIcon(name)
+		if (!Renderer.hasCustomSprite(lives))
+			useBase = true
+		if (!Renderer.hasCustomSprite(conts))
+			useBase = true
+	}
+	
+	
+	if useBase
+	{
+		base.ESS_drawCharIcons(combo, px, py, num)
+		return
+	}
+	
+	u16 renderQueue = 0x6200 + num * 3
+	if (ESS_set_visstyle == ESS_STYLE_S3K)
+	{
+		// life
+		Renderer.setViewport(px - 8, py, 16, 16, renderQueue)
+		++renderQueue
+		Renderer.drawSprite(lives, px, py+16, 0, 0, renderQueue, 0, 255)
+		++renderQueue
+		Renderer.resetViewport(renderQueue)
+		
+		Renderer.drawSprite("ESS_s3kdigit_colon", px + 8, py, 0, 0, 0x5002, 0, 255)
+		ESS.drawNumber("ESS_s3kdigit_%d", u8[A0 + 0x3e], px + 24, py, 0x5002)
+
+		// cont
+		Renderer.drawSprite(conts, px, py+40, 0, 0, 0x6000, 0, 255)
+		Renderer.drawSprite("ESS_s3kdigit_colon", px + 8, py+24, 0, 0, 0x5002, 0, 255)
+		ESS.drawNumber("ESS_s3kdigit_%d", u8[A0 + 0x3f], px + 24, py+24, 0x5002)
+	}
+	else
+	{
+		// life
+		//Renderer.setViewport(px - 8, py - 16, 16, 16, renderQueue)
+		++renderQueue
+		Renderer.drawSprite(lives, px, py, 0, 0, renderQueue, 0, 255)
+		++renderQueue
+		//Renderer.resetViewport(renderQueue)
+		
+		ESS.drawNumber("ess_meddigit_%d", u8[A0 + 0x3e], px + 20, py - 14, 0x5002)
+		// cont
+		Renderer.drawSprite(conts, px + 46, py + 4, 0, 0, 0x6000, 0, 255)
+		ESS.drawNumber("ess_meddigit_%d", u8[A0 + 0x3f], px + 66, py - 14, 0x5002)
+	}
+}
+
+function u64 getECFCharacterLivesIcon(u64 name)
+{
+	string name_str = name
+	if (name == "Custom") //replace with your character name!
+	{
+		return "custom_life"
+		
+		//replace with return "yourlifeicon"
+	}
+	//replace with return "yourlifeicon"
+	return base.getECFCharacterLivesIcon(name)
+}
+
+function u64 getECFCharacterContinueIcon(u64 name)
+{
+	if (name == "Custom") //replace with your character name!
+	{
+		return "custom_continue"
+			
+		//replace with return "yourconticon"
+	}
+	return base.getECFCharacterContinueIcon(name)
+}
+
+//You!!! Also!!! Don't!! gotta change this!!
+function void ESS_drawZone(s16 px, s16 py, u8 num, u32 color_prmy, u32 color_scnd, bool selected)
+{
+	base.ESS_drawZone(px, py, num, color_prmy, color_scnd, selected)
+	if u16[A0 + 0x36] == u8[A0 + 0x3a]
+	{
+		//SpriteHandle sprI = Renderer.addSpriteHandle(MISC.getClearPortrait(u8[A0 + 0x3b], u16[A0 + 0x34]), px, py, 0x5010)
+		u64 key = MISC.getClearPortrait(u8[A0 + 0x3b], u16[A0 + 0x34]-1)
+		MISC.drawPortraitSprite(key, px, py+120, 0x00, SPRITE_FLAG_PRIO, 0x5010+1, u16[A0 + 0x34]-1)
+	}
+}
+
+//You!! Also!! Do!! Not!! Change this!!!!!
+function void ESS_saveBoxGetColors(u8 num)
+{
+	u32 temp0 = 0xffffb0de + (num * 0x4a)
+	u32 temp1 = 0xffffe6a2 + (num * 0x0a)
+	if (num >= 9)
+	{
+		temp0 = 0xffffb378
+		temp1 = 0x800000 + ((num - 9) * 0x0a)
+	}
+	
+	u8 saveChar = (num == 0) ? dataselect.nosave_characters : (num < 9) ? u16[temp0 + 0x34] : u8(ESS.charbackups >> (56 - (8 * (num-1))))
+	
+	if saveChar < 5
+	{
+		base.ESS_saveBoxGetColors(num)
+		return
+	}
+	
+	string name = ESS_getcharname(saveChar)
+	if !MISC.getESS_slotColour(name)
+	{
+		D0.u32 = 0xfcb424
+		D1.u32 = 0xb44800
+	}
+}
+
+//Replace this with your custom colours for your character
+function bool MISC.getESS_slotColour(string name)
+{
+	if name == "Custom"
+	{
+		D0.u32 = 0xd800d8
+		D1.u32 = 0x8c00d8
+		return true
+	}
+	return base.MISC.getESS_slotColour(name)
+}
+#endif

@@ -14,7 +14,13 @@ function string ActSelect.GetCharacterCombinationName(u8 index) //calls seperate
 	if levelselect.characters < 5
 		return ActSelect.CHARACTER_COMBINATION_NAME[index]
 	else
+	{
+		#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
+			if (levelselect.characters > getHighestValidChar())
+				return ECF_getCharDisplayName(getECFCharNameAtId(index - getHighestValidChar()))
+		#endif
 		return MISC.GetCharName(levelselect.characters)
+	}
 }
 
 function string ActSelect.GetCharacterCombinationSprite(u8 index) //calls seperate function for getting name strings for chars over 5 (might need to account for k&t)
@@ -28,24 +34,74 @@ function string ActSelect.GetCharacterCombinationSprite(u8 index) //calls sepera
 //Fix "beep" sound playing on highest character selection. this is only called this way during this script, so it's okay to do it like this.
 function void Audio.playAudio(u64 sfxId)
 {
-	if sfxId == 0x5b && levelselect.characters > getHighestValidChar()
+	u16 maxSelection = getHighestValidChar()
+	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
+		maxSelection += ECF_lastSelectableId
+	#endif
+	if sfxId == 0x5b && levelselect.characters > maxSelection
 		return
 
 	base.Audio.playAudio(sfxId)
 }
 
+#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
+global u16 ECF_levelselectbackup = 0
+
+function void EntryFunctions.actSelect()
+{
+	u8 MISC = ECF_levelselectbackup-4
+	bool IsECF = !isValidChar(ECF_levelselectbackup)
+	
+	//fix ECF/MISC selections
+	if (levelselect_ExChar_P1_id && IsECF)
+	{
+		levelselect_ExChar_P1_id = ECF_levelselectbackup - (getHighestValidChar())
+		levelselect.characters = getECFGlobalCharId(getECFCharNameAtId(levelselect_ExChar_P1_id))
+		EntryFunctions.sharedInit()
+		System.setupCallFrame("GameModeControlLoop", "@EntryPoint")
+		System.setupCallFrame("LevelSelect.startGame")
+		return
+	}
+	else if MISC && ECF_levelselectbackup > 4
+	{
+		levelselect.characters = ECF_levelselectbackup
+		levelselect_ExChar_P1_id = 0
+		EntryFunctions.sharedInit()
+		System.setupCallFrame("GameModeControlLoop", "@EntryPoint")
+		System.setupCallFrame("LevelSelect.startGame")
+	}
+	else
+		base.EntryFunctions.actSelect()
+}
+#endif
+
 function void ActSelect.DrawMenu(u8 selectedEntry, u8 selectedZone, u8 selectedAct, s16 anchorX)
 {
+	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
+	if (levelselect.characters > getHighestValidChar() && getECFCharNameAtId(levelselect.characters - getHighestValidChar()) == "")
+		levelselect.characters = min(levelselect.characters, ECF_lastSelectableId+getHighestValidChar())
+	#endif
 	// Title text
 	Renderer.drawText(ActSelect.TITLE_FONT, anchorX, 12, "ACT SELECT", 0xffffffff, 5, 0, 0xf010, false, true)
+	
+	u16 maxSelection = getHighestValidChar()
+	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
+		maxSelection += ECF_lastSelectableId
+	#endif
 	
 	if (selectedEntry == 2) //Edited portion. unlocks selections over 3 and checks for valid chars
 	{
 		bool left = Input.buttonDown(BUTTON_LEFT)
 		bool right = Input.buttonDown(BUTTON_RIGHT)
 		s8 optionChange = (left) ? -1 : (right) ? 1 : 0
+	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
+		while (!isValidChar(levelselect.characters) && ECF_isSelectionHidden(getECFCharNameAtId(levelselect.characters - getHighestValidChar())))
+	#else
 		while !(isValidChar(levelselect.characters))
-			levelselect.characters = clamp(s16(levelselect.characters) + optionChange, 0, getHighestValidChar())
+	#endif
+		{
+			levelselect.characters = clamp(s16(levelselect.characters) + optionChange, 0, maxSelection)
+		}
 	}
 	
 	// Character preview
@@ -53,7 +109,26 @@ function void ActSelect.DrawMenu(u8 selectedEntry, u8 selectedZone, u8 selectedA
 		s16 px = max(anchorX - 125, 52)		// Move to the right in 4:3
 		Renderer.drawSprite("charselectionbox", px + 3, 159, 0, 0x00, 0xf002)
 		if levelselect.characters > 4
-			MISC.drawActSelCharSprite(px, levelselect.characters)
+		{
+		#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
+			// i pulled this from Vs. The Roaring Knight lmao. ~ nabbup
+			if (levelselect.characters > getHighestValidChar())
+			{
+				string name = getECFCharNameAtId(levelselect.characters - getHighestValidChar())
+				string key = stringformat("charselect_%s", name)
+				if (Renderer.hasCustomSprite(key))
+				{
+					SpriteHandle cspr = Renderer.addSpriteHandle(key, px, 156, 0xf004)
+					cspr.setFlags(0)
+					cspr.setPalette(getECFCharacterPaletteKey(name), 0)
+				}
+			}
+			else
+		#endif
+			{
+				MISC.drawActSelCharSprite(px, levelselect.characters)
+			}
+		}
 		else
 			Renderer.drawSprite(ActSelect.GetCharacterCombinationSprite(levelselect.characters), px, 156, 0, 0x00, 0xf004)
 	}
@@ -88,7 +163,7 @@ function void ActSelect.DrawMenu(u8 selectedEntry, u8 selectedZone, u8 selectedA
 		{
 			text = ActSelect.GetCharacterCombinationName(levelselect.characters)
 			canGoLeft = (levelselect.characters > 0)
-			canGoRight = ((levelselect.characters < ActSelect.GetNumCharacterCombinations() - 1) && (levelselect.characters != getHighestValidChar())) //edited section, makes the highest possible char the highest valid MES.
+			canGoRight = ((levelselect.characters < maxSelection) && (levelselect.characters != maxSelection))
 		}
 		else
 		{
@@ -115,6 +190,9 @@ function void ActSelect.DrawMenu(u8 selectedEntry, u8 selectedZone, u8 selectedA
 	}
 	#if CZS_ACTIVE
 		customZoneSelect.ActSelectCZSControl()
+	#endif
+	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
+		ECF_levelselectbackup = levelselect.characters
 	#endif
 }
 
