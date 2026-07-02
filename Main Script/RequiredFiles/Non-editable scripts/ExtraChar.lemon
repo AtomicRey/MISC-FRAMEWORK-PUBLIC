@@ -26,7 +26,7 @@ function bool isValidChar(u8 characters) //Determine what values are valid
 	if (MISC.SetCharAsValid(slotnum))
 		return true
 		//technically you don't even need to use this sprite. you just need to HAVE a sprite named this.
-		
+	
 	//All characters below knuckles & tails are valid
 	if (characters <= 3 && !Game.isSecretUnlocked(SECRET_KNUX_AND_TAILS)) || (Game.isSecretUnlocked(SECRET_KNUX_AND_TAILS) && characters <= 4 && (global.game_mode != 0x2c))
 		return true
@@ -101,28 +101,6 @@ function void fn00d6d0()
 		ESU.ExtraChar = global.xtrachar
 	#endif
 	
-	bool ECFactive = false
-	u8 ECF.id
-	u8 ECF.LowestSlot
-	u8 ECF.HighestSlot
-	u8 ECF.ListSize
-	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-		ECFactive = true
-		ECF.LowestSlot = ECF_firstSelectableId
-		ECF.HighestSlot = ECF_lastSelectableId
-		ECF.ListSize = ECF_charList_length
-		if (objA0.update_address == 0x00d42c)
-		{
-			u8 read = (A0.u16 - 0xb128) / 0x4a
-			ECF.id = System.getGlobalVariableValueByName(stringformat("ECF_Save%d_P1_id", read+1))
-			#if GAMEAPP >= 0x26012400
-				ECF.id = ECF_Save_num[read]
-			#endif
-		}
-		else
-			ECF.id = noSave_ExChar_P1_id
-	#endif
-	
 	#if EXTRA_SAVE_SLOTS_ACTIVE
 		ESUactive = false
 	#endif
@@ -131,23 +109,14 @@ function void fn00d6d0()
 	u8 character = D0.u8
 	u8 maxCharacterSelection = (Game.isSecretUnlocked(SECRET_KNUX_AND_TAILS)) ? 255 : 254
 	
-	// reyna please rewrite this when you get the chance, to make the ECF part easier. ~ nabbup
 	if (u16[0xffffb07a] == 0x00)
 	{
 		if (control.pad1.pressed & CONTROL_UP)
-		{
-			//FOR ECF COMPAT
-			//order goes MISC, ESU, ECF.
-		
-			if character == getHighestValidChar() && ESUactive && ESU.LowestSlot > 0 && ECF.id == 0 //if ESU is active, do this behaviour instead.
+		{		
+			if character == getHighestValidChar() && ESUactive && ESU.LowestSlot > 0
 			{
 				objA0.animation.timer = ESU.LowestSlot
 				character = CHARS_SONIC_ALONE
-			}
-			else if ECFactive && character == getHighestValidChar() && ECF.LowestSlot > 0 && ECF.id == 0 //if ECF is active... set to this AFTER ESU.
-			{
-				ECF.id = ECF.LowestSlot
-				character = 0
 			}
 			else
 			{
@@ -157,10 +126,6 @@ function void fn00d6d0()
 					{
 						objA0.animation.timer = 0
 						character = CHARS_SONIC_AND_TAILS
-						
-						//TODO: make this go to ECF selection instead
-						ECF.id = ECF.LowestSlot
-						character = 0
 					}
 					else if (objA0.animation.timer < ESU.HighestSlot) //if it's not, do the checks ESU does for next available slot.
 					{
@@ -177,23 +142,6 @@ function void fn00d6d0()
 								break
 						}
 					}
-				}
-				else if ECFactive && ECF.id != 0 //otherwise, do ECF selection.
-				{
-					#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-					while (true)
-					{
-						ECF.id = (ECF.id + ECF.ListSize + 2) % (ECF.ListSize + 1)
-						if (ECF.id == 0)
-						{
-							objA0.animation.timer = 0
-							character = 0
-							break
-						}
-						else if (!ECF_isSelectionHidden(getECFCharNameAtId(ECF.id)))
-							break
-					}
-					#endif
 				}
 				else
 				{
@@ -212,45 +160,14 @@ function void fn00d6d0()
 		}
 		else if (control.pad1.pressed & CONTROL_DOWN)
 		{
-			//FOR ECF COMPAT
-			//order goes ECF, ESU, MISC.
-			//TODO: prioritize ECF when selecting down
-		
-			if character == 0 && ECFactive && ECF.id == 0 && objA0.animation.timer == 0
-			{
-				ECF.id = ECF.HighestSlot
-				character = 0
-			}
-			else if character == 0 && ESUactive && ESU.LowestSlot > 0 && ECF.id == 0 //if ESU is active, do this behaviour instead.
+			if character == 0 && ESUactive && ESU.LowestSlot > 0
 			{
 				objA0.animation.timer = ESU.HighestSlot
 				character = CHARS_SONIC_ALONE
 			}
 			else
 			{
-				if ECFactive && ECF.id != 0
-				{
-					#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-					while (true)
-					{
-						ECF.id = (ECF.id + ECF.ListSize) % (ECF.ListSize + 1)
-						if (ECF.id == 0)
-						{
-							if (ESUactive)
-							{
-								objA0.animation.timer = ESU.HighestSlot
-								character = CHARS_SONIC_ALONE
-							}
-							else
-								character = getHighestValidChar()
-							break
-						}
-						else if (!ECF_isSelectionHidden(getECFCharNameAtId(ECF.id)))
-							break
-					}
-					#endif
-				}
-				else if ESUactive && ESU.ExtraChar != 0 && ECF.id == 0 //if ESU character selection is active
+				if ESUactive && ESU.ExtraChar != 0
 				{
 					if ESU.ExtraChar == ESU.LowestSlot //check for highest slot, then reset if it is.
 					{
@@ -295,46 +212,6 @@ function void fn00d6d0()
 	#if EXTRA_CHARACTERS_UNLIMITED
 		global.xtrachar = objA0.animation.timer
 	#endif
-	
-	//this... is just what ECF does. I guess.
-	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-	if (objA0.update_address == 0x00d42c)
-	{
-	#if GAMEAPP >= 0x26012400
-		u8 read = (A0.u16 - 0xb128) / 0x4a
-		ECF_Save_str[read] = getECFCharNameAtId(ECF.id)
-		ECF_Save_num[read] = ECF.id
-	#else
-		u8 read = (A0.u16 - 0xb0de) / 0x4a
-		System.setGlobalVariableValueByName(stringformat("ECF_Save%d_P1_id", read), ECF.id)
-		System.setGlobalVariableValueByName(stringformat("ECF_Save%d_P1", read), getECFCharNameAtId(ECF.id))
-	#endif
-	}
-	else
-		noSave_ExChar_P1_id = ECF.id
-	#endif
-}
-
-// render clear portraits in data select (contributed by nabbup)
-// note: i don't know the extent of which this works so if it doesn't work with your MISC character i don't know what to tell you lol.
-
-function bool Standalone.onDrawVdpSpriteCompound(s16 px, s16 py, u8 size, u16 index, u16 renderQueue, u8 spriteCounter)
-{
-	u8 slotnum = max(s16(u16[A0 + 0x34] - 1), 0) // Character selection AFTER Knuckles & Tails
-	if (objA0.update_address == 0x00d42c && objA0.animation.frame > 0x17 && index >= 0xe3c8 && index <= 0xe55c)
-	{
-		px = (objA0.position.x.u16 - 0xa8) + 40
-		string key = MISC.getClearPortrait(objA0.value3b, slotnum)
-		if (Renderer.hasCustomSprite(key))
-		{
-			if index == 0xe51c || index == 0xe40e || index == 0xe454 || index == 0xe3c8
-				MISC.drawPortraitSprite(key, px, 136, 0x00, SPRITE_FLAG_PRIO, 0x9feb, slotnum)
-			
-			return true
-		}
-	}
-	
-	return base.Standalone.onDrawVdpSpriteCompound(px, py, size, index, renderQueue, spriteCounter)
 }
 
 // Render character, or they'll be a random sprite from the Data Select
@@ -347,26 +224,23 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	bool prioFlag = (objA0.sprite_attributes & 0x8000) != 0x00
 
 	// Render character in data select, or they'll be a random sprite from the Data Select
+	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
+	if (objA0.update_address == 0x00d30c || objA0.update_address == 0x00d42c) && !ECF_dataselect_getNum()
+	#else
 	if (objA0.update_address == 0x00d30c || objA0.update_address == 0x00d42c)
+	#endif
 	{
-		u8 ECF.char
+		if (objA0.compound.count >= 2 && objA0.animation.frame != 0x17) // clear portrait
+		{
+			string key = MISC.getClearPortrait(objA0.value3b, slotnum)
+			if (Renderer.hasCustomSprite(key))
+			{
+				MISC.drawPortraitSprite(key, px, py, 0x00, SPRITE_FLAG_PRIO, renderQueue-1, slotnum)
+				objA0.compound.count = 1
+			}
+		}
 		
-		#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-		if (objA0.update_address == 0x00d42c)
-		{
-			u8 read = (A0.u16 - 0xb128) / 0x4a
-			ECF.char = System.getGlobalVariableValueByName(stringformat("ECF_Save%d_P1_id", read+1))
-			#if GAMEAPP >= 0x26012400
-				ECF.char = ECF_Save_num[read]
-			#endif
-		}
-		else
-		{
-			ECF.char = noSave_ExChar_P1_id
-		}
-		#endif
-	
-		if slotnum > 3 && ECF.char == 0
+		if slotnum > 3 // main (MISC) character drawing
 		{
 			MISC.drawCharSprite(px, py, renderQueue, slotnum)
 			objA0.animation.sprite = 0
@@ -397,7 +271,18 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		if levelselect.characters >= 4
 		{
 			MISC.player1.character = levelselect.characters
-			string key = MISC.getEndLogoSprites(0x03)
+			//I'm sorry little one...
+			loadCharacterPalette(MISC.player1.character,    0x802000, 0)
+			
+			string key
+			//we wanna get the LAST frame in the endlogo pose. I doubt any anim will go past 0x10. if they do, well god damn.
+			//this is such a dumb fix oh my god
+			u8 val = 0x10
+			while (!Renderer.hasCustomSprite(key))
+			{
+				val--
+				key = MISC.getEndLogoSprites(val)
+			}
 			SpriteHandle Char = Renderer.addSpriteHandle(key, px, py+20, 0xffff)
 			Char.setPaletteOffset(0x40)
 			return true
@@ -450,12 +335,16 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		if (MISC.frameworkSelection != FRAMEWORK_MISC)
 			return base.Standalone.onWriteToSpriteTable(px, py, renderQueue)
 		#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-		if (levelselect.characters <= 3) // keep the bumpers!!!!!!!!!!
+		if (levelselect.characters < 4)
 		{
-			return false
+			bool iWantToBeNice = ECF_disableBranchBase
+			ECF_disableBranchBase = true
+			bool base = base.Standalone.onWriteToSpriteTable(px, py, renderQueue)
+			ECF_disableBranchBase = iWantToBeNice
+			return base
 		}
 		#endif
-		if levelselect.characters > 3 //checks for if character is over the base 3
+		if levelselect.characters > 3 && (objA0.sprite_attributes & sprite_attribute.PALETTE.LINE3) //checks for if character is over the base 3
 		{
 			u8 flags = ((objA0.render_flags & 0x01) ? SPRITE_FLAG_FLIP_X : 0x00) | ((objA0.render_flags & 0x02) ? SPRITE_FLAG_FLIP_Y : 0x00) | ((objA0.sprite_attributes & 0x8000) ? SPRITE_FLAG_PRIO : 0x00)
 			
@@ -1030,8 +919,21 @@ function void fn001506()
 //# address-hook(0x0067b6) end(0x0067ec)
 function void SetGlobalCharacters()
 {
-	// ECF: character check here?
-	if u8[0xffffe654] || System.getGlobalVariableValueByName("levelselect_ExChar_P1_id")
+	bool keepECFout = System.getGlobalVariableValueByName("levelselect_ExChar_P1_id")
+	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
+	// struggling to make a good solution with consistently loading ECFs with MISC because LEMONS NEVER INCLUDED PREPROCESSORS FOR SPECIFIC VERSIONS OF ECF.
+	// Y'KNOW, SOMETHING MISC DOES FOR MAJOR REVISIONS.
+	// "ECF should generally be able to be accounted for via other mods." HOW ABOUT EACH REVISION? HUH, DID YOU EVER THINK ABOUT THAT ONE?
+	// so much for that. nothing you can do about the old versions now, lemons. great job.
+	// you went out of your way to change things for your own sake, because compatibility for mods that aren't yours be damned.
+	u8 temp = global.characters
+	global.characters = CHARS_SONIC_AND_TAILS
+	bool isECF = !isECFCharP1("")
+	global.characters = temp
+	if (System.getGlobalVariableValueByName("levelselect_ExChar_P1_id") == 0 && isECF)
+		keepECFout = true
+	#endif
+	if u8[0xffffe654] || keepECFout
 	{
 		base.SetGlobalCharacters()
 		return
@@ -1324,17 +1226,10 @@ function void MISC.frameworkSwitcher(u8 limit)
 	MISC.switcherRunTimes++
 	Renderer.resetSprites()
 	bool ESUactive = false
-	bool ECFactive = false
 	#if EXTRA_CHARACTERS_UNLIMITED
 		ESUactive = true
 	#endif
-	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-		ECFactive = true
-	#endif
-	#if EXTRA_SAVE_SLOTS_ACTIVE
-		ESUactive = false
-	#endif
-	if (!ESUactive && !ECFactive)
+	if (!ESUactive)
 		return
 	if (control.pad1.pressed & CONTROL_A && levelselect.selection < limit)
 	{
@@ -1344,19 +1239,15 @@ function void MISC.frameworkSwitcher(u8 limit)
 		levelselect.xtrachar = false
 		global.xtrachar = CHARACTER_UNSET
 	#endif
-	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-		levelselect_ExChar_P1_id = 0
-	#endif
 		levelselect.characters = 0
 		MISC.frameworkSelection++
 		if (!ESUactive && MISC.frameworkSelection == FRAMEWORK_ESU)
 			MISC.frameworkSelection++
-		if (!ECFactive && MISC.frameworkSelection == FRAMEWORK_ECF)
-			MISC.frameworkSelection++
-		MISC.frameworkSelection %= 3		
+		
+		MISC.frameworkSelection %= 2
 	}
-	string framework = MISC.frameworkSelection == FRAMEWORK_ECF ? "ECF" : MISC.frameworkSelection == FRAMEWORK_ESU ? "ESU" : "MISC"
-	if (ESUactive || ECFactive)
+	string framework = MISC.frameworkSelection == FRAMEWORK_ESU ? "ESU" : "MISC"
+	if (ESUactive)
 	{
 		bool mobile = (HUD.useMobileLivesDisplay()) // just makes sense.
 		s16 py1 = mobile ? 12 : getScreenHeight() - 14
@@ -1375,6 +1266,11 @@ function void fn007e64()
 		value = 0x1f
 	
 	MISC.frameworkSwitcher(value)
+		
+	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
+	if (MISC.frameworkSelection != FRAMEWORK_ECF)
+		ECFmenus_globalVarReset()
+	#endif
 	
 	if (MISC.frameworkSelection != FRAMEWORK_MISC)
 	{
@@ -1456,30 +1352,27 @@ function void LevelSelect_drawECFIcons()
 
 // Loading MISCS into the Blue Sphere menu (Contributed by AtomicRay & nabbup)
 
-#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-//
 //# address-hook(0x04cf82) end(0x04d03c)
 function void fn04cf82()
 {
 	base.fn04cf82()
-	if (MISC.frameworkSelection != FRAMEWORK_ECF)
+	if (MISC.frameworkSelection != FRAMEWORK_ECF && global.game_mode == 0x34)
 	{
-		global_ExChar_P1_id = 0
-		global_ExChar_P1 = 0
-		global.characters = levelselect.characters
+		#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
+			ECFmenus_globalVarReset()
+		#endif
 		#if EXTRA_CHARACTERS_UNLIMITED
 		if (bluespheres.xtrachar)
 			ExtraChar.startupWithExtraChar()
 		#endif
 	}
 }
-#endif
 
 //Load new characters in blue spheres
 //# address-hook(0x04d6b8) end(0x04d7a0)
 function void fn04d6b8()
 {
-	if !(objA0.render_flags & render_flag.FLIP_X)
+	if !(objA0.render_flags & render_flag.FLIP_X) && !((control.pad1.pressed & CONTROL_B || Input.buttonPressed(BUTTON_BACK)) && bluespheregame.menu_selection == 1)
 		MISC.frameworkSwitcher(1)
 	#if EXTRA_CHARACTERS_UNLIMITED
 	if (MISC.frameworkSelection == FRAMEWORK_ESU)
@@ -1515,7 +1408,6 @@ function void fn04d6b8()
 			// Manipulate the palette for Tails
 			BlueSphereGame.applyTailsPalette(0xfffffc00)
 		}
-
 		// Render the BG logo in the right colors again
 		Renderer.drawCustomSprite("sklogo", getScreenWidth() / 2, 40 - scrolloffset.y.planeB, 0x00, 0, 0x1700)
 	}
@@ -1602,10 +1494,7 @@ function void fn04d6b8()
 	--objA0.animation.timer
 	if (s8(objA0.animation.timer) < 0)
 	{
-		if (MISC.frameworkSelection == FRAMEWORK_ECF)
-			objA0.animation.timer = 5
-		else
-			objA0.animation.timer = 2
+		objA0.animation.timer = 2
 		++objA0.animation.sprite
 		objA0.animation.sprite &= 0x07
 	}
@@ -1639,15 +1528,6 @@ function void fn04d6b8()
 
 	if (control.pad1.pressed & CONTROL_ABC)
 	{
-		if (MISC.frameworkSelection == FRAMEWORK_ECF)
-		{
-			#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-			if ((objA0.render_flags & render_flag.FLIP_X) == 0)
-				levelselect.characters = (levelselect.characters + 1) % (ECF_charList_length + 3)
-			#endif
-			DrawObject()
-			return
-		}
 		if ((objA0.render_flags & render_flag.FLIP_X) == 0)
 		{
 			if (MISC.frameworkSelection == FRAMEWORK_ESU)
@@ -1661,30 +1541,10 @@ function void fn04d6b8()
 			}
 			else if (MISC.frameworkSelection == FRAMEWORK_MISC)
 			{
-				if levelselect.characters >= getHighestValidBluSphereChar()
-				{
-					levelselect.characters = CHARS_SONIC_ALONE
-					//return to sonic slot
-				}
-				else
-				{
+				levelselect.characters++
+				while (!isValidBluSphereChar(levelselect.characters) && levelselect.characters < getHighestValidBluSphereChar())
 					levelselect.characters++
-					if (levelselect.characters >= 4)
-					{
-						u8 maxCharacterSelection = (Game.isSecretUnlocked(SECRET_KNUX_AND_TAILS)) ? 255 : 254
-						for (u8 i = 4; i <= maxCharacterSelection; ++i) //go through all valid slots
-						{
-							if (isValidBluSphereChar(i) && i > levelselect.characters) //check for next valid slot
-							{
-								levelselect.characters = i //set correct value
-								break //end loop
-							}
-
-							if (i >= maxCharacterSelection)
-								break //end loop if it's the max character (failsafe, in case the above thing fails)
-						}
-					}
-				}
+				levelselect.characters %= getHighestValidBluSphereChar()+1
 			}
 		}
 		
@@ -1720,16 +1580,6 @@ function void fn00da4e()
 		// Lookup correct zone and act to start
 		D0.u16 = u16[0x00da6e + (D0.u8 & 0x0f) * 2]
 	}
-}
-
-function bool Standalone.onDrawVdpSpriteCompound(s16 px, s16 py, u8 size, u16 index, u16 renderQueue, u8 spriteCounter)
-{
-	if ((index == 0x83BD || index == 0x93BD) && objA0.update_address == 0x00d42c) // arrows in data select, draw them above everything else
-	{
-		Renderer.drawVdpSprite(px, py, size, index, 0x9ffb)
-		return true
-	}
-	return base.Standalone.onDrawVdpSpriteCompound(px, py, size, index, renderQueue, spriteCounter)
 }
 
 //# address-hook(0x05f26c) end(0x05f2dc)
@@ -2139,10 +1989,6 @@ function u8 ExtraChar.getHighestSlot()
 {
 	if (global.game_mode == 0 && levelselect.characters > 4) // force disable ESU char select logic
 		return 0
-	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-	else if (global.game_mode == 0 && levelselect_ExChar_P1_id != 0) // force disable ESU char select logic
-		return 0
-	#endif
 	return base.ExtraChar.getHighestSlot()
 }
 
@@ -2179,78 +2025,6 @@ function void fn00d42c()
 	SetMISCSlots() //yes it does this every frame. deal with it, lol.
 	
 	base.fn00d42c()
-	
-	#if EXTRA_SAVE_SLOTS_ACTIVE
-	return
-	#endif
-	
-	//first, check if ECF is active
-	u8 read = (A0.u16 - 0xb128) / 0x4a
-	bool ECFactive = false
-	u8 ECF.id
-	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-		ECFactive = true
-		
-	//check for an ECF ids
-	ECF.id = System.getGlobalVariableValueByName(stringformat("ECF_Save%d_P1_id", read+1))
-	#if GAMEAPP >= 0x26012400
-		ECF.id = ECF_Save_num[read]
-	#endif
-
-	#endif
-	
-	if ECF.id != 0
-		return
-	
-	if !ECFactive
-		return
-		
-	#if EXTRA_CHARACTERS_UNLIMITED
-	//check if the slot is selected and global.xtrachar is 0 to check for other values
-	if (dataselect.slot_selected == read + 1) && global.xtrachar == 0
-	{
-		if u16[A0 + 0x34] > 4
-			return
-	}
-
-	if (u8[A0 + 0x05] > 0x00)
-	{
-		u32 tempValue0 = sharedmemory.xtrachar + u32(read)
-		objA0.animation.timer = u8[tempValue0]
-	}
-	
-	if (dataselect.slot_selected == read + 1)
-	{
-		global.xtrachar = objA0.animation.timer
-	}
-	
-	D0.u8 = dataselect.slot_selected - 0x01
-	if (D0.u8 == objA0.flags2e)
-	{
-		if (control.pad1.pressed & DataSelect.CONTROLS_ACCEPT)
-		{
-			if (objA0.animation.timer > 0x00 && dataselect.slot_selected > 0x00) //do the stuff!!
-			{
-				// Determine extra slot address offset and set character ID
-				u32 tempValue0 = sharedmemory.xtrachar + u32(dataselect.slot_selected - 0x01)
-				u8[tempValue0] = objA0.animation.timer
-				
-				// Save the values
-				ExtraChar.SaveExtraSlots()
-				
-				// Debug messages
-				ExtraChar.debugLog(stringformat("Extra #%d was saved in slot #%d; Extra address: 0x%06x", global.xtrachar, dataselect.slot_selected, tempValue0))
-			}
-		}
-		else if (objA0.compound.sprite1.animation.sprite == 0x0f) //kinda scuffed, but disable life conts.
-		{
-			// Determine extra slot address offset and set character ID
-			u32 tempValue0 = sharedmemory.xtrachar + u32(dataselect.slot_selected - 0x01)
-			u8[tempValue0] = 0
-			u8[A0 + 0x05] = 0
-		}
-	}
-	#endif
 }
 
 //# address-hook(0x00c3e4) end(0x00c402)
@@ -2522,45 +2296,27 @@ function void fn07b2dc()
 	base.fn07b2dc()
 }
 
-//# address-hook(0x01aada) end(0x01ab18)
-function void UpdateGameObjects()
+//# address-hook(0x01ab1a) end(0x01ab30)
+function void updateGameObjectLoopRenderOnly()
 {
-	base.UpdateGameObjects()
+    s32 pretendD7 = D7.s32
+    base.updateGameObjectLoopRenderOnly()
+    A0 = 0xffffb000
+    while (pretendD7 >= 0)
+    {
+        u32 address = u32[A0]
+        u32 tailstails = addressof(TailsTails.Update)
+        if (address == tailstails)
+        {
+            D1 = 0
+            A1 = address
+            call A1
+        }
 
-	A0 = 0xffffb000
-	if (competition_mode.active == 0 && char.base_state >= base_state.DIED && char.base_state != base_state.DROWNED)
-	{
-
-		A0 = tailstails.p1
-		if u16[tailstails.p1 + 0x30] == 0xb000
-		{
-			D7 = 1
-			updateGameObjectLoop()
-		}
-		
-		A0 = tailstails.p2
-		if u16[tailstails.p2 + 0x30] == 0xb04a
-		{
-			D7 = 1
-			updateGameObjectLoop()
-		}
-		
-		#if TAGTEAM_ACTIVE
-			A0 = tailstails.p3
-			if u16[tailstails.p3 + 0x30] == 0xc2ca
-			{
-				D7 = 1
-				updateGameObjectLoop()
-			}
-			
-			A0 = tailstails.p4
-			if u16[tailstails.p4 + 0x30] == 0xc314
-			{
-				D7 = 1
-				updateGameObjectLoop()
-			}
-		#endif
-	}
+        // Go on to next object
+        A0 += 0x4a
+        --pretendD7
+    }
 }
 
 #if RMSSY_Active
@@ -2578,4 +2334,4 @@ function void RMSSY.UpdatePages()
 #endif
 
 //Added define for preprocessor check to allow compat with other mods without any one specific MISC mod needing to be active. (contributed by Nabbup)
-#define MISC_ACTIVE = 5
+#define MISC_ACTIVE = 6

@@ -190,7 +190,8 @@ function void ESS_drawZone(s16 px, s16 py, u8 num, u32 color_prmy, u32 color_scn
 	{
 		//SpriteHandle sprI = Renderer.addSpriteHandle(MISC.getClearPortrait(u8[A0 + 0x3b], u16[A0 + 0x34]), px, py, 0x5010)
 		u64 key = MISC.getClearPortrait(u8[A0 + 0x3b], u16[A0 + 0x34]-1)
-		MISC.drawPortraitSprite(key, px, py+120, 0x00, SPRITE_FLAG_PRIO, 0x5010+1, u16[A0 + 0x34]-1)
+		if Renderer.hasCustomSprite(key)
+			MISC.drawPortraitSprite(key, px, py+120, 0x00, SPRITE_FLAG_PRIO, 0x5010+1, u16[A0 + 0x34]-1)
 	}
 }
 

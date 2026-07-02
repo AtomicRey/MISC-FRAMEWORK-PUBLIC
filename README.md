@@ -8,6 +8,8 @@ For fun
 Okay but actually, MISC provides freedom in the way you want to create your character mod! It allows for using Sonic, Tails, or Knuckles bases for your character, supports tail objects for all 3,
 provides the ability to mix animation styles (e.g. sonic base with tails-like anims, tails base with knuckles-like anims, etc.) among many other things. Additionally, MISC will be updated over time
 with more optional addons that can improve your character mod!
+MISC also supports a few quality of life features you may enjoy! such as MISC Addons, which are optional scripts you can add to your code to add popular features to your mods (2 currently, but more are in development). 
+built-in support for mods that want to access MISC characters, (such as PONG 3 AIR), as well as rendering improvements, such as fake corkscrew sprites (done by rotating horizontal corkscrews, so other corkscrew sprites aren't needed)
 ## Can I use it?
 Sure just give credit where it's due because Ramona, Reyna, and Monty are the crutch of the framework and without any one of them the framework would either not exist or be complete dogshit
 ## Okay but HOOWWW do I use it huh? How the fuck do I use it!?

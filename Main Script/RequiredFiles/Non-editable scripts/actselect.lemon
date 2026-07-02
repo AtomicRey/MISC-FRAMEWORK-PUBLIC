@@ -3,24 +3,15 @@
 #if GAMEAPP >= 0x24060180
 function u8 ActSelect.GetNumCharacterCombinations() //unlocks number to full 255 slots
 {
-	u8 numCharacterCombinations = 255
-	if (!Game.isSecretUnlocked(SECRET_KNUX_AND_TAILS))
-		--numCharacterCombinations
-	return numCharacterCombinations
+	return 255
 }
 
 function string ActSelect.GetCharacterCombinationName(u8 index) //calls seperate function for getting name strings for chars over 5 (might need to account for k&t)
 {
-	if levelselect.characters < 5
-		return ActSelect.CHARACTER_COMBINATION_NAME[index]
+	if index < 5
+		return base.ActSelect.GetCharacterCombinationName(index)
 	else
-	{
-		#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-			if (levelselect.characters > getHighestValidChar())
-				return ECF_getCharDisplayName(getECFCharNameAtId(index - getHighestValidChar()))
-		#endif
-		return MISC.GetCharName(levelselect.characters)
-	}
+		return MISC.GetCharName(index-1)
 }
 
 function string ActSelect.GetCharacterCombinationSprite(u8 index) //calls seperate function for getting name strings for chars over 5 (might need to account for k&t)
@@ -35,72 +26,55 @@ function string ActSelect.GetCharacterCombinationSprite(u8 index) //calls sepera
 function void Audio.playAudio(u64 sfxId)
 {
 	u16 maxSelection = getHighestValidChar()
-	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-		maxSelection += ECF_lastSelectableId
-	#endif
 	if sfxId == 0x5b && levelselect.characters > maxSelection
 		return
 
 	base.Audio.playAudio(sfxId)
 }
 
+function bool MISC.actSelectWorkaroundForECF()
+{
+	// the point of this is to minimize the struggles for those who make ECF and MISC work together again
+	// ...so, they would return true if they wanted the logic to be disabled
+	return false
+}
+
 #if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-global u16 ECF_levelselectbackup = 0
+function u16 ActSelect.TranslateZoneAct(u8 zoneNumber, u8 act)
+{
+	if (!MISC.actSelectWorkaroundForECF())
+		global.characters = levelselect.characters // stores levelselect.characters backup for MISC to bring back after ECF changes it
+	return base.ActSelect.TranslateZoneAct(zoneNumber, act)
+}
 
 function void EntryFunctions.actSelect()
 {
-	u8 MISC = ECF_levelselectbackup-4
-	bool IsECF = !isValidChar(ECF_levelselectbackup)
-	
-	//fix ECF/MISC selections
-	if (levelselect_ExChar_P1_id && IsECF)
+	if (!MISC.actSelectWorkaroundForECF())
 	{
-		levelselect_ExChar_P1_id = ECF_levelselectbackup - (getHighestValidChar())
-		levelselect.characters = getECFGlobalCharId(getECFCharNameAtId(levelselect_ExChar_P1_id))
-		EntryFunctions.sharedInit()
-		System.setupCallFrame("GameModeControlLoop", "@EntryPoint")
-		System.setupCallFrame("LevelSelect.startGame")
-		return
+		ECFmenus_globalVarReset()
+		levelselect.characters = global.characters
 	}
-	else if MISC && ECF_levelselectbackup > 4
-	{
-		levelselect.characters = ECF_levelselectbackup
-		levelselect_ExChar_P1_id = 0
-		EntryFunctions.sharedInit()
-		System.setupCallFrame("GameModeControlLoop", "@EntryPoint")
-		System.setupCallFrame("LevelSelect.startGame")
-	}
-	else
-		base.EntryFunctions.actSelect()
+	base.EntryFunctions.actSelect()
 }
 #endif
 
 function void ActSelect.DrawMenu(u8 selectedEntry, u8 selectedZone, u8 selectedAct, s16 anchorX)
 {
-	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-	if (levelselect.characters > getHighestValidChar() && getECFCharNameAtId(levelselect.characters - getHighestValidChar()) == "")
-		levelselect.characters = min(levelselect.characters, ECF_lastSelectableId+getHighestValidChar())
-	#endif
 	// Title text
 	Renderer.drawText(ActSelect.TITLE_FONT, anchorX, 12, "ACT SELECT", 0xffffffff, 5, 0, 0xf010, false, true)
 	
 	u16 maxSelection = getHighestValidChar()
-	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-		maxSelection += ECF_lastSelectableId
-	#endif
-	
-	if (selectedEntry == 2) //Edited portion. unlocks selections over 3 and checks for valid chars
+	bool noKnuxAndTails = levelselect.characters == CHARS_KNUCKLES_AND_TAILS && !Game.isSecretUnlocked(SECRET_KNUX_AND_TAILS)
+
+	if (selectedEntry == 2 || noKnuxAndTails) //Edited portion. unlocks selections over 3 and checks for valid chars
 	{
 		bool left = Input.buttonDown(BUTTON_LEFT)
 		bool right = Input.buttonDown(BUTTON_RIGHT)
 		s8 optionChange = (left) ? -1 : (right) ? 1 : 0
-	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-		while (!isValidChar(levelselect.characters) && ECF_isSelectionHidden(getECFCharNameAtId(levelselect.characters - getHighestValidChar())))
-	#else
-		while !(isValidChar(levelselect.characters))
-	#endif
+		while (!(isValidChar(levelselect.characters)) || noKnuxAndTails)
 		{
 			levelselect.characters = clamp(s16(levelselect.characters) + optionChange, 0, maxSelection)
+			noKnuxAndTails = levelselect.characters == CHARS_KNUCKLES_AND_TAILS && !Game.isSecretUnlocked(SECRET_KNUX_AND_TAILS)
 		}
 	}
 	
@@ -110,24 +84,7 @@ function void ActSelect.DrawMenu(u8 selectedEntry, u8 selectedZone, u8 selectedA
 		Renderer.drawSprite("charselectionbox", px + 3, 159, 0, 0x00, 0xf002)
 		if levelselect.characters > 4
 		{
-		#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-			// i pulled this from Vs. The Roaring Knight lmao. ~ nabbup
-			if (levelselect.characters > getHighestValidChar())
-			{
-				string name = getECFCharNameAtId(levelselect.characters - getHighestValidChar())
-				string key = stringformat("charselect_%s", name)
-				if (Renderer.hasCustomSprite(key))
-				{
-					SpriteHandle cspr = Renderer.addSpriteHandle(key, px, 156, 0xf004)
-					cspr.setFlags(0)
-					cspr.setPalette(getECFCharacterPaletteKey(name), 0)
-				}
-			}
-			else
-		#endif
-			{
-				MISC.drawActSelCharSprite(px, levelselect.characters)
-			}
+			MISC.drawActSelCharSprite(px, levelselect.characters)
 		}
 		else
 			Renderer.drawSprite(ActSelect.GetCharacterCombinationSprite(levelselect.characters), px, 156, 0, 0x00, 0xf004)
@@ -190,9 +147,6 @@ function void ActSelect.DrawMenu(u8 selectedEntry, u8 selectedZone, u8 selectedA
 	}
 	#if CZS_ACTIVE
 		customZoneSelect.ActSelectCZSControl()
-	#endif
-	#if EXTRA_CHARACTER_FRAMEWORK_ACTIVE
-		ECF_levelselectbackup = levelselect.characters
 	#endif
 }
 

@@ -240,7 +240,7 @@ function string MISC.GetCharNameDiscordRPC(u8 character)
 {
 	if (character != CHARACTER_CUSTOM)
 		return base.MISC.GetCharNameDiscordRPC(character)
-	return MISC.GetCharName(character+1)
+	return MISC.GetCharName(character)
 }
 
 // Used for the small image in the Discord RPC for your character, by default uses the unknown icon, you can add your own icon by replacing it with a link to your image
@@ -254,8 +254,7 @@ function string MISC.setDiscordSmallImage(u8 character)
 // Used for your character's name in Act select. and probably at least one other thing (Contributed by AtomicRay)
 function string MISC.GetCharName(u8 character)
 {
-	u8 slotnum = (global.game_mode == 0x2c) ? character : (character - 1)
-	if slotnum == CHARACTER_CUSTOM
+	if character == CHARACTER_CUSTOM
 		return "GETYOUROWNDAMNNAME" //name
 	
 	return base.MISC.GetCharName(character)
