@@ -1,0 +1,87 @@
+/*
+	Slot Machine (from the respective Bonus Stage)
+	
+	Custom-made code (repurposed from "The Works") to allow MISCs to have their own rendering for the icons in the Bonus Stage.
+	By default, it renders a custom sprite on top of Sonic's slot icon, but can be repurposed for other slots the game calls upon.
+	
+	The slots go as follows:
+	
+	0x00 - Jackpot
+	0x01 - Sonic
+	0x02 - Tails
+	0x03 - Knuckles
+	0x04 - Robotnik, Eggman, y'know, the bald guy.
+	0x05 - Ring
+	0x06 - The bar that says "BAR"
+	0x07 - Super Sonic, which only appears if using legobouwer9's "super sonic slot icon restoration" (https://gamebanana.com/mods/342491)
+	
+	You may edit the code for use outside of MISC characters.
+	Regardless of whether you do or not, when using these scripts you should be crediting nabbup (https://github.com/nabbup) for the creation of this script file.
+	
+	Higher priority mods using these scripts will have their icons rendered BELOW the lower priority mods, not ABOVE.	
+	Partial compatibility for Lave's customizer is included to prevent issues with visuals, and to let them render if only some of them are replaced in these scripts.
+*/
+
+// BonusSM.UpdateSlotMachine is hooked into to render the icons when it's not rolling the icons
+//# address-hook(0x04c3f0) end(0x04c3f8)
+function void BonusSM.UpdateSlotMachine()
+{
+	u8 slotstatus = u8[0xffffe408] // backs up the state of the slots before the slot machine updates to make sure the icons don't disappear for a frame
+	base.BonusSM.UpdateSlotMachine()
+	if (MISC.player1.character == CHARACTER_CUSTOM) && (slotstatus != 0x0c && slotstatus != 0x10) // change "MISC.player1.character == CHARACTER_CUSTOM" to whatever you need for your mod
+		CHARACTER_CUSTOM.slotMachineIcons(0x8000)
+}
+
+// fn04c6d6 is hooked into for the rolling icons since it keeps them synced with the vanilla sprites perfectly
+// which i believe is the last part of the slot machine's icon updating... it's a weird daisy chain of function calls and it's barely readable
+//# address-hook(0x04c6d6) end(0x04c6ec)
+function void fn04c6d6()
+{
+	base.fn04c6d6()
+	if (MISC.player1.character == CHARACTER_CUSTOM) && (u8[0xffffe408] == 0x0c || u8[0xffffe408] == 0x10) // change "MISC.player1.character == CHARACTER_CUSTOM" to whatever you need for your mod
+		CHARACTER_CUSTOM.slotMachineIcons(0x8000)
+}
+
+function void Renderer.addSpriteMask(s16 px, s16 py, s16 width, s16 height, u16 renderQueue, u8 priorityFlag)
+{
+	if (renderQueue == 0x8001 && global.zone == 0x15) // adjusting the spritemask of Lave's customizer to prevent it from doing weird graphics stuff
+		renderQueue--
+	base.Renderer.addSpriteMask(px, py, width, height, renderQueue, priorityFlag)
+}
+
+function void CHARACTER_CUSTOM.slotMachineIcons(u16 renderQueue) // please make sure the CHARACTER_CUSTOM in the function name is replaced by something specific to your mod
+{
+	s16 px = u16[0xffffb128 + 0x10] - 0x20
+	s16 py = u16[0xffffb128 + 0x14] - 0x30
+	
+	Renderer.setViewport(px - camera.position.x.u16 - 0x10, py - camera.position.y.u16 - 0x10, 0x60, 0x20, renderQueue)
+	renderQueue++
+	for (u8 i = 0; i < 3; i++)
+	{
+		u32 slotAddress = 0xffffe40e + (i << 2)
+		u32 sequenceTable = 0x04c8cc + (i << 3)
+		u8 slot = u8[sequenceTable + (u8[slotAddress] & 0x07)]
+		s16 offset = (u16[slotAddress] & 0xf8) >> 3
+		
+		if (slot == 0x01) // edit this to another value for icons other than Sonic's, or remove this entire line if you want all of the slots to have unique icons for your character
+			CHARACTER_CUSTOM.renderSMIcon(slot, px, py-offset, renderQueue)
+		if (offset)
+		{
+			slot = u8[sequenceTable + ((u8[slotAddress]+1) & 0x07)]
+			if (slot == 0x01) // edit this to another value for icons other than Sonic's, or remove this entire line if you want all of the slots to have unique icons for your character
+				CHARACTER_CUSTOM.renderSMIcon(slot, px, py-offset+32, renderQueue)
+		}
+		px += 0x20
+	}
+	Renderer.resetViewport(renderQueue+1)
+}
+
+function void CHARACTER_CUSTOM.renderSMIcon(u8 slot, s16 px, s16 py, u16 renderQueue)
+{
+	// please remember to use SPRITE_FLAG_PRIO and SPRITE_FLAG_WORLDSPACE as flags if you choose to change the rendering.
+	// IF YOU USE SPRITEHANDLES, increment the renderQueue by one when rendering it, to ensure it doesn't get put underneath other sprites.
+	// the "slot" parameter is in case you run multiple slot icons through this.
+	// obviously, change "my_awesome_sprite" to whatever you set the sprite key name to for your Slot Machine icon.
+	// the sprite centerpoint values should be "Center": "16,16"
+	Renderer.drawSprite("my_awesome_sprite", px, py, 0, (SPRITE_FLAG_PRIO | SPRITE_FLAG_WORLDSPACE), renderQueue)
+}
