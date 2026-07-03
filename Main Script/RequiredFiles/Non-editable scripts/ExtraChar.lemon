@@ -1034,16 +1034,11 @@ function void fn0067ee()
 		return
 	}
 	#endif
-
-	u32[0xffffb094] = addressof(ResetDynamicObjectList)
-	InitializeGameCharacters()
-	if (checkpoint.number != 0 || global.stage_type != 0)
-		return
-
-	A1 = 0xffffb000
-	A2 = 0xffffb04a
-	if (global.zone_act == 0x0300)
+	
+	if (global.zone_act == 0x0300 && checkpoint.number == 0)
 	{
+		u32[0xffffb094] = addressof(ResetDynamicObjectList)
+		InitializeGameCharacters()
 		RestoreShield()
 		// Carnival Night Zone
 		//spawn ai tails
@@ -1052,8 +1047,10 @@ function void fn0067ee()
 		u16[0xffffb04a + 0x14] = u16[0xffffb000 + 0x14]
 		tails.ai_routine = 0
 	}
-	else if (global.zone_act == 0x0700)
+	else if (global.zone_act == 0x0700 && checkpoint.number == 0)
 	{
+		u32[0xffffb094] = addressof(ResetDynamicObjectList)
+		InitializeGameCharacters()
 		RestoreShield()
 		// Mushroom Hill Zone
 		if (global.lock_on_state == 0)
